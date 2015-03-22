@@ -159,7 +159,7 @@ namespace TrackerWeb.Tests
         }
 
         [TestMethod]
-        public async Task TestVerifyCodeIndex()
+        public async Task TestVerifyCodeView()
         {
             var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(true));
             var controller = new AccountController(_userManager, signInManager);
@@ -172,7 +172,7 @@ namespace TrackerWeb.Tests
         }
 
         [TestMethod]
-        public async Task TestVerifyCodeIndexError()
+        public async Task TestVerifyCodeViewError()
         {
             var result = await _controller.VerifyCode("", "", false);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
@@ -238,7 +238,7 @@ namespace TrackerWeb.Tests
         }
 
         [TestMethod]
-        public void TestRegisterIndex()
+        public void TestRegisterView()
         {
             var result = _controller.Register();
             Assert.IsInstanceOfType(result, typeof(ViewResult));
@@ -286,6 +286,55 @@ namespace TrackerWeb.Tests
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
             Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestConfirmEmailError()
+        {
+            var result = await _controller.ConfirmEmail(null, null);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "Error");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public async Task TestConfirmEmailError2()
+        {
+            await _controller.ConfirmEmail("", "");
+        }
+
+        [TestMethod]
+        public async Task TestConfirmEmailError3()
+        {
+            var user = await _userManager.FindByNameAsync(TestConfig.TestUserEmail);
+            var userManager = new Mock<ApplicationUserManager>(_userStore);
+            userManager.Setup(
+                si => si.ConfirmEmailAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new TestIdentityResult(false));
+            var controller = new AccountController(userManager.Object, _signInManager);
+            SetupControllerForTests(controller);
+
+            var result = await controller.ConfirmEmail(user.Id, "");
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "Error");
+        }
+
+        [TestMethod]
+        public async Task TestConfirmEmailSuccess()
+        {
+            var userManager = new Mock<ApplicationUserManager>(_userStore);
+            userManager.Setup(
+                si => si.ConfirmEmailAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new TestIdentityResult(true));
+            var controller = new AccountController(userManager.Object, _signInManager);
+            SetupControllerForTests(controller);
+
+            var result = await controller.ConfirmEmail("", "");
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "ConfirmEmail");
         }
 
         [TestCleanup]

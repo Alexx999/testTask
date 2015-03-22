@@ -146,6 +146,7 @@
     <Compile Include="AccountApiIntegrationTest.cs" />
     <Compile Include="HomeTest.cs" />
     <Compile Include="AccountTest.cs" />
+    <Compile Include="Mocks\TestIdentityResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.config" />

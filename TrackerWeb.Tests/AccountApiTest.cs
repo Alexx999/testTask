@@ -161,12 +161,5 @@ namespace TrackerWeb.Tests
             request.Properties["MS_OwinContext"] = owinContext;
         }
 
-        private class TestIdentityResult:IdentityResult
-        {
-            public TestIdentityResult(bool success)
-                : base(success)
-            {
-            }
-        }
     }
 }
