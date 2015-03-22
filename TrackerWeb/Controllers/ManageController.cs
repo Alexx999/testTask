@@ -62,6 +62,7 @@ namespace TrackerWeb.Controllers
                 : message == ManageMessageId.Error ? "An error has occurred."
                 : message == ManageMessageId.AddPhoneSuccess ? "Your phone number was added."
                 : message == ManageMessageId.RemovePhoneSuccess ? "Your phone number was removed."
+                : message == ManageMessageId.RemoveLoginSuccess ? "Your login was removed."
                 : "";
 
             var userId = User.Identity.GetUserId();
