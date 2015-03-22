@@ -55,7 +55,7 @@ namespace TrackerWeb.Controllers.API
         }
 
 
-        private IHttpActionResult GetErrorResult(IdentityResult result)
+        public IHttpActionResult GetErrorResult(IdentityResult result)
         {
             if (result == null)
             {

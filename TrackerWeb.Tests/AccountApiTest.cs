@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Controllers;
+using System.Web.Http.Results;
 using System.Web.Http.Routing;
 using Microsoft.AspNet.Identity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,9 +34,18 @@ namespace TrackerWeb.Tests
             SetupControllerForTests(controller);
             var model = new RegisterModel {Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword, Name = "Test User"};
             var result = await controller.Register(model);
+            Assert.IsInstanceOfType(result, typeof(OkResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
             Assert.IsTrue(requestResult.IsSuccessStatusCode);
             Assert.IsNotNull(_userManager.FindByEmail(TestConfig.TestUserEmail));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(NullReferenceException))]
+        public void TestUserManagerGetter()
+        {
+            var controller = new AccountController();
+            Assert.IsNull(controller.UserManager);
         }
 
         [TestMethod]
@@ -46,6 +57,7 @@ namespace TrackerWeb.Tests
             await controller.Register(model);
             Assert.IsNotNull(_userManager.FindByEmail(TestConfig.TestUserEmail));
             var result = await controller.Register(model);
+            Assert.IsInstanceOfType(result, typeof(InvalidModelStateResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
             Assert.IsFalse(requestResult.IsSuccessStatusCode);
         }
@@ -59,6 +71,7 @@ namespace TrackerWeb.Tests
             controller.ModelState.AddModelError("Email", "Wrong Email");
             var model = new RegisterModel { Email = badEmail, Password = TestConfig.TestUserPassword, Name = "Test User" };
             var result = await controller.Register(model);
+            Assert.IsInstanceOfType(result, typeof(InvalidModelStateResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
             Assert.IsFalse(requestResult.IsSuccessStatusCode);
             Assert.IsNull(_userManager.FindByEmail(badEmail));
@@ -91,6 +104,23 @@ namespace TrackerWeb.Tests
         }
 
         [TestMethod]
+        public void TestErrorHelper()
+        {
+            var controller = new AccountController(_userManager);
+            var nullResult = controller.GetErrorResult(null);
+            Assert.IsInstanceOfType(nullResult, typeof(InternalServerErrorResult));
+
+            var validResult = controller.GetErrorResult(new TestIdentityResult(true));
+            Assert.IsNull(validResult);
+
+            var unknownErrorResult = controller.GetErrorResult(new TestIdentityResult(false));
+            Assert.IsInstanceOfType(unknownErrorResult, typeof(BadRequestResult));
+
+            var knownErrorResult = controller.GetErrorResult(new IdentityResult("Some Error Text"));
+            Assert.IsInstanceOfType(knownErrorResult, typeof(InvalidModelStateResult));
+        }
+
+        [TestMethod]
         public async Task TestPasswordComplexityValidation()
         {
             var validator = _userManager.PasswordValidator;
@@ -120,6 +150,14 @@ namespace TrackerWeb.Tests
             controller.ControllerContext = new HttpControllerContext(config, routeData, request);
             controller.Request = request;
             controller.Request.SetConfiguration(config);
+        }
+
+        private class TestIdentityResult:IdentityResult
+        {
+            public TestIdentityResult(bool success)
+                : base(success)
+            {
+            }
         }
     }
 }
