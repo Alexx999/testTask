@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
-using System.Web.Routing;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin;
-using Microsoft.Owin.Security;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using TrackerWeb.Controllers;
@@ -21,61 +14,16 @@ using TrackerWeb.Tests.Mocks;
 namespace TrackerWeb.Tests
 {
     [TestClass]
-    public class AccountTest
+    public class AccountTest : MvcTestBase
     {
-        private ApplicationUserManager _userManager;
-        private ApplicationSignInManager _signInManager;
         private AccountController _controller;
-        private TestUserStore<ApplicationUser> _userStore;
-        private Mock<IAuthenticationManager> _authMock;
 
         [TestInitialize]
-        public void Init()
+        public new void Init()
         {
-            _userStore = new TestUserStore<ApplicationUser>();
-            _userManager = ApplicationUserManager.Create(_userStore);
-            var user = new ApplicationUser()
-            {
-                Email = TestConfig.TestUserEmail,
-                Name = "Test User",
-                UserName = TestConfig.TestUserEmail
-            };
-            _userManager.CreateAsync(user, TestConfig.TestUserPassword).Wait();
-
-            _authMock = GetAuthenticationManagerMock(false, false);
-            _signInManager = new ApplicationSignInManager(_userManager, _authMock.Object);
-            _controller = new AccountController(_userManager, _signInManager);
+            base.Init();
+            _controller = new AccountController(UserManager, SignInManager);
             SetupControllerForTests(_controller);
-        }
-
-        private IAuthenticationManager GetAuthenticationManager(bool hasAuthenticatedUser, bool hasExternalLoginInfo = false)
-        {
-            return GetAuthenticationManagerMock(hasAuthenticatedUser, hasExternalLoginInfo).Object;
-        }
-
-        private Mock<IAuthenticationManager> GetAuthenticationManagerMock(bool hasAuthenticatedUser, bool hasExternalLoginInfo)
-        {
-            var mockAuthenticationManager = new Mock<IAuthenticationManager>();
-            mockAuthenticationManager.Setup(am => am.SignOut()).Verifiable();
-            mockAuthenticationManager.Setup(am => am.SignIn(It.IsAny<ClaimsIdentity[]>())).Verifiable();
-
-            var user = _userManager.FindByEmailAsync(TestConfig.TestUserEmail).Result;
-            var identity = new ClaimsIdentity(new[]
-                {
-                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", user.Id, "String", "TestIssuer"),
-                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", user.Email),
-                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", user.Name)
-                });
-            var authenticateResult = new AuthenticateResult(identity, new AuthenticationProperties(), new AuthenticationDescription());
-            if (hasAuthenticatedUser)
-            {
-                mockAuthenticationManager.Setup(am => am.AuthenticateAsync("TwoFactorCookie")).ReturnsAsync(authenticateResult);
-            }
-            if (hasExternalLoginInfo)
-            {
-                mockAuthenticationManager.Setup(am => am.AuthenticateAsync("ExternalCookie")).ReturnsAsync(authenticateResult);
-            }
-            return mockAuthenticationManager;
         }
 
 
@@ -112,9 +60,9 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestAccountLoginLockout()
         {
-            var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
-            await _userManager.SetLockoutEnabledAsync(user.Id, true);
-            await _userManager.SetLockoutEndDateAsync(user.Id, new DateTimeOffset(DateTime.UtcNow + new TimeSpan(1000,0,0,0)));
+            var user = await UserManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            await UserManager.SetLockoutEnabledAsync(user.Id, true);
+            await UserManager.SetLockoutEndDateAsync(user.Id, new DateTimeOffset(DateTime.UtcNow + new TimeSpan(1000,0,0,0)));
 
             var viewModel = new LoginViewModel {Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword};
             var result = await _controller.Login(viewModel, "/Test");
@@ -126,10 +74,10 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestAccountLoginTwoFactor()
         {
-            var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
-            await _userManager.SetTwoFactorEnabledAsync(user.Id, true);
-            await _userManager.SetPhoneNumberAsync(user.Id, "+100000000000");
-            await _userStore.SetPhoneNumberConfirmedAsync(user, true);
+            var user = await UserManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            await UserManager.SetTwoFactorEnabledAsync(user.Id, true);
+            await UserManager.SetPhoneNumberAsync(user.Id, "+100000000000");
+            await UserStore.SetPhoneNumberConfirmedAsync(user, true);
 
             var viewModel = new LoginViewModel {Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword};
             var result = await _controller.Login(viewModel, "/Test");
@@ -162,7 +110,7 @@ namespace TrackerWeb.Tests
         {
             var controller = new AccountController();
             SetupControllerForTests(controller);
-            Assert.AreSame(controller.UserManager, _userManager);
+            Assert.AreSame(controller.UserManager, UserManager);
         }
 
         [TestMethod]
@@ -170,7 +118,7 @@ namespace TrackerWeb.Tests
         {
             var controller = new AccountController();
             SetupControllerForTests(controller);
-            Assert.AreSame(controller.SignInManager, _signInManager);
+            Assert.AreSame(controller.SignInManager, SignInManager);
         }
 
         [TestMethod]
@@ -178,14 +126,14 @@ namespace TrackerWeb.Tests
         {
             var result = _controller.Authorize();
             Assert.IsInstanceOfType(result, typeof(EmptyResult));
-            _authMock.Verify(auth => auth.SignIn(It.IsAny<ClaimsIdentity[]>()), Times.Once);
+            AuthMock.Verify(auth => auth.SignIn(It.IsAny<ClaimsIdentity[]>()), Times.Once);
         }
 
         [TestMethod]
         public async Task TestVerifyCodeView()
         {
-            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(true));
-            var controller = new AccountController(_userManager, signInManager);
+            var signInManager = new ApplicationSignInManager(UserManager, GetAuthenticationManager(true));
+            var controller = new AccountController(UserManager, signInManager);
             SetupControllerForTests(controller);
 
             var result = await controller.VerifyCode("", "", false);
@@ -228,11 +176,11 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestVerifyCodeSuccess()
         {
-            var signIn = new Mock<ApplicationSignInManager>(_userManager, GetAuthenticationManager(true));
+            var signIn = new Mock<ApplicationSignInManager>(UserManager, GetAuthenticationManager(true));
             signIn.Setup(
                 si => si.TwoFactorSignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
                 .ReturnsAsync(SignInStatus.Success);
-            var controller = new AccountController(_userManager, signIn.Object);
+            var controller = new AccountController(UserManager, signIn.Object);
             SetupControllerForTests(controller);
 
             var verifyViewModel = new VerifyCodeViewModel();
@@ -246,11 +194,11 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestVerifyCodeLockout()
         {
-            var signIn = new Mock<ApplicationSignInManager>(_userManager, GetAuthenticationManager(true));
+            var signIn = new Mock<ApplicationSignInManager>(UserManager, GetAuthenticationManager(true));
             signIn.Setup(
                 si => si.TwoFactorSignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
                 .ReturnsAsync(SignInStatus.LockedOut);
-            var controller = new AccountController(_userManager, signIn.Object);
+            var controller = new AccountController(UserManager, signIn.Object);
             SetupControllerForTests(controller);
 
             var verifyViewModel = new VerifyCodeViewModel();
@@ -281,7 +229,7 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestRegisterSuccess()
         {
-            await _userManager.DeleteAsync(await _userManager.FindByNameAsync(TestConfig.TestUserEmail));
+            await UserManager.DeleteAsync(await UserManager.FindByNameAsync(TestConfig.TestUserEmail));
             var viewModel = new RegisterViewModel
             {
                 Email = TestConfig.TestUserEmail,
@@ -332,12 +280,12 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestConfirmEmailError3()
         {
-            var user = await _userManager.FindByNameAsync(TestConfig.TestUserEmail);
-            var userManager = new Mock<ApplicationUserManager>(_userStore);
+            var user = await UserManager.FindByNameAsync(TestConfig.TestUserEmail);
+            var userManager = new Mock<ApplicationUserManager>(UserStore);
             userManager.Setup(
                 si => si.ConfirmEmailAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new TestIdentityResult(false));
-            var controller = new AccountController(userManager.Object, _signInManager);
+            var controller = new AccountController(userManager.Object, SignInManager);
             SetupControllerForTests(controller);
 
             var result = await controller.ConfirmEmail(user.Id, "");
@@ -349,11 +297,11 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestConfirmEmailSuccess()
         {
-            var userManager = new Mock<ApplicationUserManager>(_userStore);
+            var userManager = new Mock<ApplicationUserManager>(UserStore);
             userManager.Setup(
                 si => si.ConfirmEmailAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new TestIdentityResult(true));
-            var controller = new AccountController(userManager.Object, _signInManager);
+            var controller = new AccountController(userManager.Object, SignInManager);
             SetupControllerForTests(controller);
 
             var result = await controller.ConfirmEmail("", "");
@@ -387,8 +335,8 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestForgotPasswordSuccessForExisting()
         {
-            var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
-            await _userStore.SetEmailConfirmedAsync(user, true);
+            var user = await UserManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            await UserStore.SetEmailConfirmedAsync(user, true);
 
             var model = new ForgotPasswordViewModel {Email = TestConfig.TestUserEmail};
 
@@ -471,11 +419,11 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestResetPasswordSuccess()
         {
-            var userManager = new Mock<ApplicationUserManager>(_userStore) {CallBase = true};
+            var userManager = new Mock<ApplicationUserManager>(UserStore) {CallBase = true};
             userManager.Setup(
                 si => si.ResetPasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new TestIdentityResult(true));
-            var controller = new AccountController(userManager.Object, _signInManager);
+            var controller = new AccountController(userManager.Object, SignInManager);
             SetupControllerForTests(controller);
 
             var model = new ResetPasswordViewModel
@@ -495,11 +443,11 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestResetPasswordFail()
         {
-            var userManager = new Mock<ApplicationUserManager>(_userStore) {CallBase = true};
+            var userManager = new Mock<ApplicationUserManager>(UserStore) {CallBase = true};
             userManager.Setup(
                 si => si.ResetPasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new TestIdentityResult(false));
-            var controller = new AccountController(userManager.Object, _signInManager);
+            var controller = new AccountController(userManager.Object, SignInManager);
             SetupControllerForTests(controller);
 
             var model = new ResetPasswordViewModel
@@ -546,9 +494,9 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestSendCodeView()
         {
-            _userManager.RegisterTwoFactorProvider("prov", new DataProtectorTokenProvider<ApplicationUser, string>(new TestDataProtection()));
-            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(true));
-            var controller = new AccountController(_userManager, signInManager);
+            UserManager.RegisterTwoFactorProvider("prov", new DataProtectorTokenProvider<ApplicationUser, string>(new TestDataProtection()));
+            var signInManager = new ApplicationSignInManager(UserManager, GetAuthenticationManager(true));
+            var controller = new AccountController(UserManager, signInManager);
             SetupControllerForTests(controller);
 
             var result = await controller.SendCode("", false);
@@ -581,11 +529,11 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestSendCodeSuccess()
         {
-            var signIn = new Mock<ApplicationSignInManager>(_userManager, GetAuthenticationManager(true));
+            var signIn = new Mock<ApplicationSignInManager>(UserManager, GetAuthenticationManager(true));
             signIn.Setup(
                 si => si.SendTwoFactorCodeAsync(It.IsAny<string>()))
                 .ReturnsAsync(true);
-            var controller = new AccountController(_userManager, signIn.Object);
+            var controller = new AccountController(UserManager, signIn.Object);
             SetupControllerForTests(controller);
 
             var model = new SendCodeViewModel();
@@ -607,8 +555,8 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestExternalLoginCallbackNewUser()
         {
-            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(false, true));
-            var controller = new AccountController(_userManager, signInManager);
+            var signInManager = new ApplicationSignInManager(UserManager, GetAuthenticationManager(false, true));
+            var controller = new AccountController(UserManager, signInManager);
             SetupControllerForTests(controller);
 
             var result = await controller.ExternalLoginCallback("");
@@ -620,11 +568,11 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestExternalLoginCallbackSuccess()
         {
-            var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            var user = await UserManager.FindByEmailAsync(TestConfig.TestUserEmail);
             var loginInfo = new UserLoginInfo("TestIssuer", user.Id);
-            await _userManager.AddLoginAsync(user.Id, loginInfo);
-            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(false, true));
-            var controller = new AccountController(_userManager, signInManager);
+            await UserManager.AddLoginAsync(user.Id, loginInfo);
+            var signInManager = new ApplicationSignInManager(UserManager, GetAuthenticationManager(false, true));
+            var controller = new AccountController(UserManager, signInManager);
             SetupControllerForTests(controller);
 
             var result = await controller.ExternalLoginCallback("/Test");
@@ -636,13 +584,13 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestExternalLoginCallbackLockout()
         {
-            var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            var user = await UserManager.FindByEmailAsync(TestConfig.TestUserEmail);
             var loginInfo = new UserLoginInfo("TestIssuer", user.Id);
-            await _userManager.AddLoginAsync(user.Id, loginInfo);
-            await _userManager.SetLockoutEnabledAsync(user.Id, true);
-            await _userManager.SetLockoutEndDateAsync(user.Id, new DateTimeOffset(DateTime.UtcNow + new TimeSpan(1000, 0, 0, 0)));
-            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(false, true));
-            var controller = new AccountController(_userManager, signInManager);
+            await UserManager.AddLoginAsync(user.Id, loginInfo);
+            await UserManager.SetLockoutEnabledAsync(user.Id, true);
+            await UserManager.SetLockoutEndDateAsync(user.Id, new DateTimeOffset(DateTime.UtcNow + new TimeSpan(1000, 0, 0, 0)));
+            var signInManager = new ApplicationSignInManager(UserManager, GetAuthenticationManager(false, true));
+            var controller = new AccountController(UserManager, signInManager);
             SetupControllerForTests(controller);
 
             var result = await controller.ExternalLoginCallback("/Test");
@@ -654,13 +602,13 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestExternalLoginCallbackRequiresVerification()
         {
-            var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            var user = await UserManager.FindByEmailAsync(TestConfig.TestUserEmail);
             var loginInfo = new UserLoginInfo("TestIssuer", user.Id);
-            await _userManager.AddLoginAsync(user.Id, loginInfo);
-            await _userStore.SetTwoFactorEnabledAsync(user, true);
-            _userManager.RegisterTwoFactorProvider("prov", new DataProtectorTokenProvider<ApplicationUser, string>(new TestDataProtection()));
-            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(false, true));
-            var controller = new AccountController(_userManager, signInManager);
+            await UserManager.AddLoginAsync(user.Id, loginInfo);
+            await UserStore.SetTwoFactorEnabledAsync(user, true);
+            UserManager.RegisterTwoFactorProvider("prov", new DataProtectorTokenProvider<ApplicationUser, string>(new TestDataProtection()));
+            var signInManager = new ApplicationSignInManager(UserManager, GetAuthenticationManager(false, true));
+            var controller = new AccountController(UserManager, signInManager);
             SetupControllerForTests(controller);
 
             var result = await controller.ExternalLoginCallback("/Test");
@@ -674,7 +622,7 @@ namespace TrackerWeb.Tests
         {
             var model = new ExternalLoginConfirmationViewModel();
 
-            var controller = new AccountController(_userManager, _signInManager);
+            var controller = new AccountController(UserManager, SignInManager);
             SetupControllerForTests(controller, true);
 
             var result = await controller.ExternalLoginConfirmation(model, "/Test");
@@ -710,7 +658,7 @@ namespace TrackerWeb.Tests
         [TestMethod] 
         public async Task TestExternalLoginConfirmationCreateUserFailure()
         {
-            var userManager = new Mock<ApplicationUserManager>(_userStore) { CallBase = true };
+            var userManager = new Mock<ApplicationUserManager>(UserStore) { CallBase = true };
             userManager.Setup(
                 si => si.CreateAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(new TestIdentityResult(false));
@@ -729,7 +677,7 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestExternalLoginConfirmationAddLoginFailure()
         {
-            var userManager = new Mock<ApplicationUserManager>(_userStore) { CallBase = true };
+            var userManager = new Mock<ApplicationUserManager>(UserStore) { CallBase = true };
             userManager.Setup(
                 si => si.CreateAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(new TestIdentityResult(true));
@@ -751,7 +699,7 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestExternalLoginConfirmationSuccess()
         {
-            var userManager = new Mock<ApplicationUserManager>(_userStore) { CallBase = true };
+            var userManager = new Mock<ApplicationUserManager>(UserStore) { CallBase = true };
             userManager.Setup(
                 si => si.CreateAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(new TestIdentityResult(true));
@@ -787,7 +735,7 @@ namespace TrackerWeb.Tests
             var redirectResult = (RedirectToRouteResult)result;
             Assert.AreEqual(redirectResult.RouteValues["controller"], "Home");
             Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
-            _authMock.Verify(auth => auth.SignOut(), Times.Once);
+            AuthMock.Verify(auth => auth.SignOut(), Times.Once);
         }
 
         [TestMethod]
@@ -802,50 +750,15 @@ namespace TrackerWeb.Tests
         }
 
         [TestCleanup]
-        public void Cleanup()
+        protected override void Cleanup()
         {
             _controller.Dispose();
-            _userManager.Dispose();
-            _signInManager.Dispose();
+            base.Cleanup();
         }
 
-        private void SetupControllerForTests(Controller controller, bool identityAuthenticated = false)
+        protected override string GetControllerPath()
         {
-            var owinContext = new OwinContext();
-            owinContext.Set(_userManager);
-            owinContext.Set(_signInManager);
-
-            var context = new Mock<HttpContextBase>();
-            var request = new Mock<HttpRequestBase>();
-            var response = new Mock<HttpResponseBase>();
-            var session = new Mock<HttpSessionStateBase>();
-            var server = new Mock<HttpServerUtilityBase>();
-            var principal = new Mock<IPrincipal>();
-            var identity = new Mock<IIdentity>();
-
-            principal.Setup(p => p.Identity).Returns(identity.Object);
-
-            identity.SetupGet(i => i.IsAuthenticated).Returns(identityAuthenticated);
-
-            context.Setup(ctx => ctx.Request).Returns(request.Object);
-            context.Setup(ctx => ctx.Response).Returns(response.Object);
-            context.Setup(ctx => ctx.Session).Returns(session.Object);
-            context.Setup(ctx => ctx.Server).Returns(server.Object);
-            context.Setup(ctx => ctx.User).Returns(principal.Object);
-
-            request.SetupGet(x => x.ApplicationPath).Returns("/");
-            request.SetupGet(x => x.Url).Returns(new Uri("http://localhost/Account", UriKind.Absolute));
-            request.SetupGet(x => x.ServerVariables).Returns(new NameValueCollection());
-
-            response.Setup(x => x.ApplyAppPathModifier(It.IsAny<string>())).Returns<string>(x => x);
-
-            context.SetupGet(x => x.Request).Returns(request.Object);
-            context.SetupGet(x => x.Response).Returns(response.Object);
-            context.SetupGet(x => x.Items).Returns(new Dictionary<object, object>() { { "owin.Environment", owinContext.Environment } });
-
-            var helper = new UrlHelper(new RequestContext(MvcMockHelpers.FakeHttpContext(), new RouteData()), RouteTable.Routes);
-            controller.Url = helper;
-            controller.ControllerContext = new ControllerContext(context.Object, new RouteData(), controller);
+            return "http://localhost/Account";
         }
     }
 }

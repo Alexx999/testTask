@@ -7,7 +7,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace TrackerWeb.Tests.Mocks
 {
-    internal class TestUserStore<TUser> : IUserStore<TUser>, IUserEmailStore<TUser>, IUserPasswordStore<TUser>, IUserLockoutStore<TUser, string>, IUserTwoFactorStore<TUser, string>, IUserPhoneNumberStore<TUser>, IUserLoginStore<TUser> where TUser : class, IUser<string>
+    public class TestUserStore<TUser> : IUserStore<TUser>, IUserEmailStore<TUser>, IUserPasswordStore<TUser>, IUserLockoutStore<TUser, string>, IUserTwoFactorStore<TUser, string>, IUserPhoneNumberStore<TUser>, IUserLoginStore<TUser> where TUser : class, IUser<string>
     {
         private readonly Task _completedTask = Task.FromResult(false);
         private Dictionary<string, UserData<TUser>> _data = new Dictionary<string, UserData<TUser>>(); 
