@@ -237,6 +237,57 @@ namespace TrackerWeb.Tests
             Assert.AreEqual(viewResult.ViewName, "Lockout");
         }
 
+        [TestMethod]
+        public void TestRegisterIndex()
+        {
+            var result = _controller.Register();
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+        }
+
+        [TestMethod]
+        public async Task TestRegisterBadModelState()
+        {
+            var viewModel = new RegisterViewModel();
+            _controller.ModelState.AddModelError("Error", "Some Error");
+            var result = await _controller.Register(viewModel);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+        }
+
+        [TestMethod]
+        public async Task TestRegisterSuccess()
+        {
+            await _userManager.DeleteAsync(await _userManager.FindByNameAsync(TestConfig.TestUserEmail));
+            var viewModel = new RegisterViewModel
+            {
+                Email = TestConfig.TestUserEmail,
+                Password = TestConfig.TestUserPassword,
+                ConfirmPassword = TestConfig.TestUserPassword,
+                Name = "Test User"
+            };
+            var result = await _controller.Register(viewModel);
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["controller"], "Home");
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
+        }
+
+        [TestMethod]
+        public async Task TestRegisterDuplicateUser()
+        {
+            var viewModel = new RegisterViewModel
+            {
+                Email = TestConfig.TestUserEmail,
+                Password = TestConfig.TestUserPassword,
+                ConfirmPassword = TestConfig.TestUserPassword,
+                Name = "Test User"
+            };
+            var result = await _controller.Register(viewModel);
+            Assert.IsFalse(_controller.ModelState.IsValid);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
