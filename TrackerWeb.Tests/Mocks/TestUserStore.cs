@@ -7,7 +7,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace TrackerWeb.Tests.Mocks
 {
-    internal class TestUserStore<TUser> : IUserStore<TUser>, IUserEmailStore<TUser>, IUserPasswordStore<TUser>, IUserLockoutStore<TUser, string>, IUserTwoFactorStore<TUser, string>, IUserPhoneNumberStore<TUser> where TUser : class, IUser<string>
+    internal class TestUserStore<TUser> : IUserStore<TUser>, IUserEmailStore<TUser>, IUserPasswordStore<TUser>, IUserLockoutStore<TUser, string>, IUserTwoFactorStore<TUser, string>, IUserPhoneNumberStore<TUser>, IUserLoginStore<TUser> where TUser : class, IUser<string>
     {
         private readonly Task _completedTask = Task.FromResult(false);
         private Dictionary<string, UserData<TUser>> _data = new Dictionary<string, UserData<TUser>>(); 
@@ -291,6 +291,46 @@ namespace TrackerWeb.Tests.Mocks
             data.PhoneConfirmed = confirmed;
             return _completedTask;
         }
+
+        public Task AddLoginAsync(TUser user, UserLoginInfo login)
+        {
+            var data = GetOrCreate(user);
+            data.Logins.Add(login);
+            return _completedTask;
+        }
+
+        public Task RemoveLoginAsync(TUser user, UserLoginInfo login)
+        {
+            var data = Get(user);
+            if (data != null)
+            {
+                data.Logins.Remove(login);
+            }
+
+            return _completedTask;
+        }
+
+        public Task<IList<UserLoginInfo>> GetLoginsAsync(TUser user)
+        {
+            var data = Get(user);
+            if (data != null)
+            {
+                return Task.FromResult((IList<UserLoginInfo>)data.Logins);
+            }
+
+            return Task.FromResult((IList<UserLoginInfo>)null);
+        }
+
+        public Task<TUser> FindAsync(UserLoginInfo login)
+        {
+            UserData<TUser> data;
+            lock (_data)
+            {
+                data = _data.Values.FirstOrDefault(d => d.Logins.Any(
+                    l => login.LoginProvider == l.LoginProvider && login.ProviderKey == l.ProviderKey));
+            }
+            return data == null ? Task.FromResult((TUser) null) : Task.FromResult(data.User);
+        }
     }
 
     internal class UserData<TUser>
@@ -305,5 +345,6 @@ namespace TrackerWeb.Tests.Mocks
         public bool TwoFactorEnabled;
         public string PhoneNumber;
         public bool PhoneConfirmed;
+        public List<UserLoginInfo> Logins = new List<UserLoginInfo>();
     }
 }

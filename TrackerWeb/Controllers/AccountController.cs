@@ -18,6 +18,7 @@ namespace TrackerWeb.Controllers
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
+        private IAuthenticationManager _authManager;
 
         public AccountController()
         {
@@ -27,6 +28,7 @@ namespace TrackerWeb.Controllers
         {
             UserManager = userManager;
             SignInManager = signInManager;
+            AuthenticationManager = signInManager.AuthenticationManager;
         }
 
         public ApplicationSignInManager SignInManager
@@ -442,7 +444,11 @@ namespace TrackerWeb.Controllers
         {
             get
             {
-                return HttpContext.GetOwinContext().Authentication;
+                return _authManager ?? HttpContext.GetOwinContext().Authentication;
+            }
+            set
+            {
+                _authManager = value;
             }
         }
 

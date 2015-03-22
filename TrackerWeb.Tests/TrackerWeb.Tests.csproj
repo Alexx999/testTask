@@ -147,6 +147,7 @@
     <Compile Include="HomeTest.cs" />
     <Compile Include="AccountTest.cs" />
     <Compile Include="Mocks\TestIdentityResult.cs" />
+    <Compile Include="Mocks\TestDataProtection.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.config" />

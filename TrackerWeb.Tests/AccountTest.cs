@@ -27,15 +27,13 @@ namespace TrackerWeb.Tests
         private ApplicationSignInManager _signInManager;
         private AccountController _controller;
         private TestUserStore<ApplicationUser> _userStore;
+        private Mock<IAuthenticationManager> _authMock;
 
         [TestInitialize]
         public void Init()
         {
             _userStore = new TestUserStore<ApplicationUser>();
             _userManager = ApplicationUserManager.Create(_userStore);
-            _signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(false));
-            _controller = new AccountController(_userManager, _signInManager);
-            SetupControllerForTests(_controller);
             var user = new ApplicationUser()
             {
                 Email = TestConfig.TestUserEmail,
@@ -43,21 +41,41 @@ namespace TrackerWeb.Tests
                 UserName = TestConfig.TestUserEmail
             };
             _userManager.CreateAsync(user, TestConfig.TestUserPassword).Wait();
+
+            _authMock = GetAuthenticationManagerMock(false, false);
+            _signInManager = new ApplicationSignInManager(_userManager, _authMock.Object);
+            _controller = new AccountController(_userManager, _signInManager);
+            SetupControllerForTests(_controller);
         }
 
-        private IAuthenticationManager GetAuthenticationManager(bool hasAuthenticatedUser)
+        private IAuthenticationManager GetAuthenticationManager(bool hasAuthenticatedUser, bool hasExternalLoginInfo = false)
+        {
+            return GetAuthenticationManagerMock(hasAuthenticatedUser, hasExternalLoginInfo).Object;
+        }
+
+        private Mock<IAuthenticationManager> GetAuthenticationManagerMock(bool hasAuthenticatedUser, bool hasExternalLoginInfo)
         {
             var mockAuthenticationManager = new Mock<IAuthenticationManager>();
-            mockAuthenticationManager.Setup(am => am.SignOut());
-            mockAuthenticationManager.Setup(am => am.SignIn());
+            mockAuthenticationManager.Setup(am => am.SignOut()).Verifiable();
+            mockAuthenticationManager.Setup(am => am.SignIn(It.IsAny<ClaimsIdentity[]>())).Verifiable();
+
+            var user = _userManager.FindByEmailAsync(TestConfig.TestUserEmail).Result;
+            var identity = new ClaimsIdentity(new[]
+                {
+                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", user.Id, "String", "TestIssuer"),
+                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", user.Email),
+                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", user.Name)
+                });
+            var authenticateResult = new AuthenticateResult(identity, new AuthenticationProperties(), new AuthenticationDescription());
             if (hasAuthenticatedUser)
             {
-                var user = _userManager.FindByEmailAsync(TestConfig.TestUserEmail).Result;
-                var identity = new ClaimsIdentity(new[] { new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", user.Id) });
-                var result = new AuthenticateResult(identity, new AuthenticationProperties(), new AuthenticationDescription());
-                mockAuthenticationManager.Setup(am => am.AuthenticateAsync(It.IsAny<string>())).ReturnsAsync(result);
+                mockAuthenticationManager.Setup(am => am.AuthenticateAsync("TwoFactorCookie")).ReturnsAsync(authenticateResult);
             }
-            return mockAuthenticationManager.Object;
+            if (hasExternalLoginInfo)
+            {
+                mockAuthenticationManager.Setup(am => am.AuthenticateAsync("ExternalCookie")).ReturnsAsync(authenticateResult);
+            }
+            return mockAuthenticationManager;
         }
 
 
@@ -160,6 +178,7 @@ namespace TrackerWeb.Tests
         {
             var result = _controller.Authorize();
             Assert.IsInstanceOfType(result, typeof(EmptyResult));
+            _authMock.Verify(auth => auth.SignIn(It.IsAny<ClaimsIdentity[]>()), Times.Once);
         }
 
         [TestMethod]
@@ -527,6 +546,7 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestSendCodeView()
         {
+            _userManager.RegisterTwoFactorProvider("prov", new DataProtectorTokenProvider<ApplicationUser, string>(new TestDataProtection()));
             var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(true));
             var controller = new AccountController(_userManager, signInManager);
             SetupControllerForTests(controller);
@@ -573,6 +593,111 @@ namespace TrackerWeb.Tests
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
             Assert.AreEqual(redirectResult.RouteValues["action"], "VerifyCode");
+        }
+
+        [TestMethod]
+        public async Task TestExternalLoginCallbackNoInfo()
+        {
+            var result = await _controller.ExternalLoginCallback("");
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Login");
+        }
+
+        [TestMethod]
+        public async Task TestExternalLoginCallbackNewUser()
+        {
+            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(false, true));
+            var controller = new AccountController(_userManager, signInManager);
+            SetupControllerForTests(controller);
+
+            var result = await controller.ExternalLoginCallback("");
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "ExternalLoginConfirmation");
+        }
+
+        [TestMethod]
+        public async Task TestExternalLoginCallbackSuccess()
+        {
+            var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            var loginInfo = new UserLoginInfo("TestIssuer", user.Id);
+            await _userManager.AddLoginAsync(user.Id, loginInfo);
+            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(false, true));
+            var controller = new AccountController(_userManager, signInManager);
+            SetupControllerForTests(controller);
+
+            var result = await controller.ExternalLoginCallback("/Test");
+            Assert.IsInstanceOfType(result, typeof(RedirectResult));
+            var redirectResult = (RedirectResult) result;
+            Assert.AreEqual(redirectResult.Url, "/Test");
+        }
+
+        [TestMethod]
+        public async Task TestExternalLoginCallbackLockout()
+        {
+            var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            var loginInfo = new UserLoginInfo("TestIssuer", user.Id);
+            await _userManager.AddLoginAsync(user.Id, loginInfo);
+            await _userManager.SetLockoutEnabledAsync(user.Id, true);
+            await _userManager.SetLockoutEndDateAsync(user.Id, new DateTimeOffset(DateTime.UtcNow + new TimeSpan(1000, 0, 0, 0)));
+            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(false, true));
+            var controller = new AccountController(_userManager, signInManager);
+            SetupControllerForTests(controller);
+
+            var result = await controller.ExternalLoginCallback("/Test");
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "Lockout");
+        }
+
+        [TestMethod]
+        public async Task TestExternalLoginCallbackRequiresVerification()
+        {
+            var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            var loginInfo = new UserLoginInfo("TestIssuer", user.Id);
+            await _userManager.AddLoginAsync(user.Id, loginInfo);
+            await _userStore.SetTwoFactorEnabledAsync(user, true);
+            _userManager.RegisterTwoFactorProvider("prov", new DataProtectorTokenProvider<ApplicationUser, string>(new TestDataProtection()));
+            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(false, true));
+            var controller = new AccountController(_userManager, signInManager);
+            SetupControllerForTests(controller);
+
+            var result = await controller.ExternalLoginCallback("/Test");
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "SendCode");
+        }
+
+        [TestMethod]
+        public void TestExternalLoginFailureView()
+        {
+            var result = _controller.ExternalLoginFailure();
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public void TestLogOff()
+        {
+            var result = _controller.LogOff();
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["controller"], "Home");
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
+            _authMock.Verify(auth => auth.SignOut(), Times.Once);
+        }
+
+        [TestMethod]
+        public void TestLogOffDefault()
+        {
+            var controller = new AccountController();
+            SetupControllerForTests(controller);
+            var result = controller.LogOff();
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["controller"], "Home");
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
         }
 
         [TestCleanup]
