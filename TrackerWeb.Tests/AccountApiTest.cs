@@ -9,6 +9,8 @@ using System.Web.Http.Controllers;
 using System.Web.Http.Results;
 using System.Web.Http.Routing;
 using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TrackerWeb.Models;
 using TrackerWeb.Controllers.API;
@@ -43,11 +45,11 @@ namespace TrackerWeb.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(NullReferenceException))]
         public void TestUserManagerGetter()
         {
             var controller = new AccountController();
-            Assert.IsNull(controller.UserManager);
+            SetupControllerForTests(controller);
+            Assert.AreSame(controller.UserManager, _userManager);
         }
 
         [TestMethod]
@@ -144,7 +146,7 @@ namespace TrackerWeb.Tests
             return Validator.TryValidateObject(model, context, results, true);
         }
 
-        private static void SetupControllerForTests(ApiController controller)
+        private void SetupControllerForTests(ApiController controller)
         {
             var config = new HttpConfiguration();
             var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/api/Account");
@@ -154,6 +156,9 @@ namespace TrackerWeb.Tests
             controller.ControllerContext = new HttpControllerContext(config, routeData, request);
             controller.Request = request;
             controller.Request.SetConfiguration(config);
+            var owinContext = new OwinContext();
+            owinContext.Set(_userManager);
+            request.Properties["MS_OwinContext"] = owinContext;
         }
 
         private class TestIdentityResult:IdentityResult

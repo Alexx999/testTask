@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -115,8 +118,28 @@ namespace TrackerWeb.Tests
             _signInManager.Dispose();
         }
 
-        private static void SetupControllerForTests(Controller controller)
+        [TestMethod]
+        public void TestUserManagerGetter()
         {
+            var controller = new AccountController();
+            SetupControllerForTests(controller);
+            Assert.AreSame(controller.UserManager, _userManager);
+        }
+
+        [TestMethod]
+        public void TestSignInManagerGetter()
+        {
+            var controller = new AccountController();
+            SetupControllerForTests(controller);
+            Assert.AreSame(controller.SignInManager, _signInManager);
+        }
+
+        private void SetupControllerForTests(Controller controller)
+        {
+            var owinContext = new OwinContext();
+            owinContext.Set(_userManager);
+            owinContext.Set(_signInManager);
+
             var context = new Mock<HttpContextBase>();
             var request = new Mock<HttpRequestBase>();
             var response = new Mock<HttpResponseBase>();
@@ -136,9 +159,11 @@ namespace TrackerWeb.Tests
 
             context.SetupGet(x => x.Request).Returns(request.Object);
             context.SetupGet(x => x.Response).Returns(response.Object);
+            context.SetupGet(x => x.Items).Returns(new Dictionary<object, object>() { { "owin.Environment", owinContext.Environment } });
 
             var helper = new UrlHelper(new RequestContext(MvcMockHelpers.FakeHttpContext(), new RouteData()), RouteTable.Routes);
             controller.Url = helper;
+            controller.ControllerContext = new ControllerContext(context.Object, new RouteData(), controller);
         }
     }
 }
