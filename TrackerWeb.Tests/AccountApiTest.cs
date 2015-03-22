@@ -13,27 +13,29 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TrackerWeb.Models;
 using TrackerWeb.Controllers.API;
 using Tracker.Models.Account;
-using TrackerWeb.Tests.Mock;
+using TrackerWeb.Tests.Mocks;
 
 namespace TrackerWeb.Tests
 {
     [TestClass]
     public class AccountApiTest
     {
-        private ApplicationUserManager _userManager = ApplicationUserManager.Create(new TestUserStore<ApplicationUser>());
+        private ApplicationUserManager _userManager;
+        private AccountController _controller;
 
         [TestInitialize]
         public void Init()
         {
+            _userManager = ApplicationUserManager.Create(new TestUserStore<ApplicationUser>());
+            _controller = new AccountController(_userManager);
+            SetupControllerForTests(_controller);
         }
 
         [TestMethod]
         public async Task TestRegister()
         {
-            var controller = new AccountController(_userManager);
-            SetupControllerForTests(controller);
             var model = new RegisterModel {Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword, Name = "Test User"};
-            var result = await controller.Register(model);
+            var result = await _controller.Register(model);
             Assert.IsInstanceOfType(result, typeof(OkResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
             Assert.IsTrue(requestResult.IsSuccessStatusCode);
@@ -51,12 +53,10 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestRegisterExisting()
         {
-            var controller = new AccountController(_userManager);
-            SetupControllerForTests(controller);
             var model = new RegisterModel { Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword, Name = "Test User" };
-            await controller.Register(model);
+            await _controller.Register(model);
             Assert.IsNotNull(_userManager.FindByEmail(TestConfig.TestUserEmail));
-            var result = await controller.Register(model);
+            var result = await _controller.Register(model);
             Assert.IsInstanceOfType(result, typeof(InvalidModelStateResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
             Assert.IsFalse(requestResult.IsSuccessStatusCode);
@@ -65,12 +65,10 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestRegisterBadViewState()
         {
-            var badEmail = "badEmail_bademail.com";
-            var controller = new AccountController(_userManager);
-            SetupControllerForTests(controller);
-            controller.ModelState.AddModelError("Email", "Wrong Email");
+            const string badEmail = "badEmail_bademail.com";
+            _controller.ModelState.AddModelError("Email", "Wrong Email");
             var model = new RegisterModel { Email = badEmail, Password = TestConfig.TestUserPassword, Name = "Test User" };
-            var result = await controller.Register(model);
+            var result = await _controller.Register(model);
             Assert.IsInstanceOfType(result, typeof(InvalidModelStateResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
             Assert.IsFalse(requestResult.IsSuccessStatusCode);
@@ -106,17 +104,16 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public void TestErrorHelper()
         {
-            var controller = new AccountController(_userManager);
-            var nullResult = controller.GetErrorResult(null);
+            var nullResult = _controller.GetErrorResult(null);
             Assert.IsInstanceOfType(nullResult, typeof(InternalServerErrorResult));
 
-            var validResult = controller.GetErrorResult(new TestIdentityResult(true));
+            var validResult = _controller.GetErrorResult(new TestIdentityResult(true));
             Assert.IsNull(validResult);
 
-            var unknownErrorResult = controller.GetErrorResult(new TestIdentityResult(false));
+            var unknownErrorResult = _controller.GetErrorResult(new TestIdentityResult(false));
             Assert.IsInstanceOfType(unknownErrorResult, typeof(BadRequestResult));
 
-            var knownErrorResult = controller.GetErrorResult(new IdentityResult("Some Error Text"));
+            var knownErrorResult = _controller.GetErrorResult(new IdentityResult("Some Error Text"));
             Assert.IsInstanceOfType(knownErrorResult, typeof(InvalidModelStateResult));
         }
 
