@@ -64,6 +64,8 @@ namespace TrackerWeb.Tests
         {
             var result = _controller.Login("/Test");
             Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
         }
 
         [TestMethod]
@@ -242,6 +244,8 @@ namespace TrackerWeb.Tests
         {
             var result = _controller.Register();
             Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
         }
 
         [TestMethod]
@@ -342,6 +346,8 @@ namespace TrackerWeb.Tests
         {
             var result = _controller.ForgotPassword();
             Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
         }
 
         [TestMethod]
@@ -398,6 +404,104 @@ namespace TrackerWeb.Tests
         {
             var result = _controller.ForgotPasswordConfirmation();
             Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public void TestResetPasswordView()
+        {
+            var result = _controller.ResetPassword("");
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public void TestResetPasswordViewError()
+        {
+            var result = _controller.ResetPassword((string)null);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "Error");
+        }
+
+        [TestMethod]
+        public async Task TestResetPasswordBadModelState()
+        {
+            var model = new ResetPasswordViewModel();
+            _controller.ModelState.AddModelError("Error", "SomeError");
+            var result = await _controller.ResetPassword(model);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestResetPasswordSuccessForNonExistent()
+        {
+            var model = new ResetPasswordViewModel {Email = "", Code = "", Password = "", ConfirmPassword = ""};
+            var result = await _controller.ResetPassword(model);
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "ResetPasswordConfirmation");
+        }
+
+        [TestMethod]
+        public async Task TestResetPasswordSuccess()
+        {
+            var userManager = new Mock<ApplicationUserManager>(_userStore) {CallBase = true};
+            userManager.Setup(
+                si => si.ResetPasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new TestIdentityResult(true));
+            var controller = new AccountController(userManager.Object, _signInManager);
+            SetupControllerForTests(controller);
+
+            var model = new ResetPasswordViewModel
+            {
+                Email = TestConfig.TestUserEmail,
+                Code = "",
+                Password = "",
+                ConfirmPassword = ""
+            };
+
+            var result = await controller.ResetPassword(model);
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "ResetPasswordConfirmation");
+        }
+
+        [TestMethod]
+        public async Task TestResetPasswordFail()
+        {
+            var userManager = new Mock<ApplicationUserManager>(_userStore) {CallBase = true};
+            userManager.Setup(
+                si => si.ResetPasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new TestIdentityResult(false));
+            var controller = new AccountController(userManager.Object, _signInManager);
+            SetupControllerForTests(controller);
+
+            var model = new ResetPasswordViewModel
+            {
+                Email = TestConfig.TestUserEmail,
+                Code = "",
+                Password = "",
+                ConfirmPassword = ""
+            };
+
+            var result = await controller.ResetPassword(model);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public void TestResetPasswordConfirmationView()
+        {
+            var result = _controller.ResetPasswordConfirmation();
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
         }
 
         [TestCleanup]
