@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using TrackerWeb.Controllers;
 using TrackerWeb.Models;
+using TrackerWeb.Results;
 using TrackerWeb.Tests.Mocks;
 
 namespace TrackerWeb.Tests
@@ -51,7 +52,8 @@ namespace TrackerWeb.Tests
             mockAuthenticationManager.Setup(am => am.SignIn());
             if (hasAuthenticatedUser)
             {
-                var identity = new ClaimsIdentity(new []{ new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", "userId")});
+                var user = _userManager.FindByEmailAsync(TestConfig.TestUserEmail).Result;
+                var identity = new ClaimsIdentity(new[] { new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", user.Id) });
                 var result = new AuthenticateResult(identity, new AuthenticationProperties(), new AuthenticationDescription());
                 mockAuthenticationManager.Setup(am => am.AuthenticateAsync(It.IsAny<string>())).ReturnsAsync(result);
             }
@@ -502,6 +504,75 @@ namespace TrackerWeb.Tests
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
             Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public void TestExternalLogin()
+        {
+            var result = _controller.ExternalLogin("", "");
+            Assert.IsInstanceOfType(result, typeof(ChallengeResult));
+            var challenge = (ChallengeResult) result;
+            challenge.ExecuteResult(_controller.ControllerContext);
+        }
+
+        [TestMethod]
+        public async Task TestSendCodeViewError()
+        {
+            var result = await _controller.SendCode("", false);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "Error");
+        }
+
+        [TestMethod]
+        public async Task TestSendCodeView()
+        {
+            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(true));
+            var controller = new AccountController(_userManager, signInManager);
+            SetupControllerForTests(controller);
+
+            var result = await controller.SendCode("", false);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestSendCodeBadModelState()
+        {
+            var model = new SendCodeViewModel();
+            _controller.ModelState.AddModelError("Error", "Some Error");
+            var result = await _controller.SendCode(model);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestSendCodeError()
+        {
+            var model = new SendCodeViewModel();
+            var result = await _controller.SendCode(model);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "Error");
+        }
+
+        [TestMethod]
+        public async Task TestSendCodeSuccess()
+        {
+            var signIn = new Mock<ApplicationSignInManager>(_userManager, GetAuthenticationManager(true));
+            signIn.Setup(
+                si => si.SendTwoFactorCodeAsync(It.IsAny<string>()))
+                .ReturnsAsync(true);
+            var controller = new AccountController(_userManager, signIn.Object);
+            SetupControllerForTests(controller);
+
+            var model = new SendCodeViewModel();
+            var result = await controller.SendCode(model);
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "VerifyCode");
         }
 
         [TestCleanup]
