@@ -6,18 +6,18 @@ using Microsoft.AspNet.Identity.Owin;
 using Tracker.Models.Account;
 using TrackerWeb.Models;
 
-namespace TrackerWeb.Controllers
+namespace TrackerWeb.Controllers.API
 {
     [Authorize]
-    public class AccountApiController : ApiController
+    public class AccountController : ApiController
     {
         private ApplicationUserManager _userManager;
 
-        public AccountApiController()
+        public AccountController()
         {
         }
 
-        public AccountApiController(ApplicationUserManager userManager)
+        public AccountController(ApplicationUserManager userManager)
         {
             UserManager = userManager;
         }

@@ -9,7 +9,7 @@ using System.Web.Http.Routing;
 using Microsoft.AspNet.Identity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TrackerWeb.Models;
-using TrackerWeb.Controllers;
+using TrackerWeb.Controllers.API;
 using Tracker.Models.Account;
 using TrackerWeb.Tests.Mock;
 
@@ -28,7 +28,7 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestRegister()
         {
-            var controller = new AccountApiController(_userManager);
+            var controller = new AccountController(_userManager);
             SetupControllerForTests(controller);
             var model = new RegisterModel {Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword, Name = "Test User"};
             var result = await controller.Register(model);
@@ -40,7 +40,7 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestRegisterExisting()
         {
-            var controller = new AccountApiController(_userManager);
+            var controller = new AccountController(_userManager);
             SetupControllerForTests(controller);
             var model = new RegisterModel { Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword, Name = "Test User" };
             await controller.Register(model);
@@ -54,7 +54,7 @@ namespace TrackerWeb.Tests
         public async Task TestRegisterBadViewState()
         {
             var badEmail = "badEmail_bademail.com";
-            var controller = new AccountApiController(_userManager);
+            var controller = new AccountController(_userManager);
             SetupControllerForTests(controller);
             controller.ModelState.AddModelError("Email", "Wrong Email");
             var model = new RegisterModel { Email = badEmail, Password = TestConfig.TestUserPassword, Name = "Test User" };
