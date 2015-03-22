@@ -15,7 +15,7 @@ namespace TrackerWeb.Tests
     [TestClass]
     public class AccountApiIntegrationTest
     {
-        private ApplicationUserManager _userManager = ApplicationUserManager.Create(new UserStore<ApplicationUser>(new ApplicationDbContext()));
+        private ApplicationUserManager _userManager = ApplicationUserManager.Create(new UserStore<ApplicationUser>(ApplicationDbContext.Create()));
 
         [TestMethod]
         public async Task RegisterUser()
