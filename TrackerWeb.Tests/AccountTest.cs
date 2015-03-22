@@ -670,6 +670,107 @@ namespace TrackerWeb.Tests
         }
 
         [TestMethod]
+        public async Task TestExternalLoginConfirmationAuthenticatedUser()
+        {
+            var model = new ExternalLoginConfirmationViewModel();
+
+            var controller = new AccountController(_userManager, _signInManager);
+            SetupControllerForTests(controller, true);
+
+            var result = await controller.ExternalLoginConfirmation(model, "/Test");
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["controller"], "Manage");
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
+        }
+
+        [TestMethod] 
+        public async Task TestExternalLoginConfirmationBadModelState()
+        {
+            var model = new ExternalLoginConfirmationViewModel();
+
+            _controller.ModelState.AddModelError("Error", "Some Error");
+            var result = await _controller.ExternalLoginConfirmation(model, "/Test");
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod] 
+        public async Task TestExternalLoginConfirmationFailure()
+        {
+            var model = new ExternalLoginConfirmationViewModel();
+
+            var result = await _controller.ExternalLoginConfirmation(model, "/Test");
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "ExternalLoginFailure");
+        }
+
+        [TestMethod] 
+        public async Task TestExternalLoginConfirmationCreateUserFailure()
+        {
+            var userManager = new Mock<ApplicationUserManager>(_userStore) { CallBase = true };
+            userManager.Setup(
+                si => si.CreateAsync(It.IsAny<ApplicationUser>()))
+                .ReturnsAsync(new TestIdentityResult(false));
+            var signInManeger = new ApplicationSignInManager(userManager.Object, GetAuthenticationManager(false, true));
+            var controller = new AccountController(userManager.Object, signInManeger);
+            SetupControllerForTests(controller);
+
+            var model = new ExternalLoginConfirmationViewModel();
+
+            var result = await controller.ExternalLoginConfirmation(model, "/Test");
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestExternalLoginConfirmationAddLoginFailure()
+        {
+            var userManager = new Mock<ApplicationUserManager>(_userStore) { CallBase = true };
+            userManager.Setup(
+                si => si.CreateAsync(It.IsAny<ApplicationUser>()))
+                .ReturnsAsync(new TestIdentityResult(true));
+            userManager.Setup(
+                si => si.AddLoginAsync(It.IsAny<string>(), It.IsAny<UserLoginInfo>()))
+                .ReturnsAsync(new TestIdentityResult(false));
+            var signInManeger = new ApplicationSignInManager(userManager.Object, GetAuthenticationManager(false, true));
+            var controller = new AccountController(userManager.Object, signInManeger);
+            SetupControllerForTests(controller);
+
+            var model = new ExternalLoginConfirmationViewModel();
+
+            var result = await controller.ExternalLoginConfirmation(model, "/Test");
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestExternalLoginConfirmationSuccess()
+        {
+            var userManager = new Mock<ApplicationUserManager>(_userStore) { CallBase = true };
+            userManager.Setup(
+                si => si.CreateAsync(It.IsAny<ApplicationUser>()))
+                .ReturnsAsync(new TestIdentityResult(true));
+            userManager.Setup(
+                si => si.AddLoginAsync(It.IsAny<string>(), It.IsAny<UserLoginInfo>()))
+                .ReturnsAsync(new TestIdentityResult(true));
+            var signInManeger = new ApplicationSignInManager(userManager.Object, GetAuthenticationManager(false, true));
+            var controller = new AccountController(userManager.Object, signInManeger);
+            SetupControllerForTests(controller);
+
+            var model = new ExternalLoginConfirmationViewModel {Email = TestConfig.TestUserEmail, Name = "Test User"};
+
+            var result = await controller.ExternalLoginConfirmation(model, "/Test");
+            Assert.IsInstanceOfType(result, typeof(RedirectResult));
+            var redirectResult = (RedirectResult)result;
+            Assert.AreEqual(redirectResult.Url, "/Test");
+        }
+
+        [TestMethod]
         public void TestExternalLoginFailureView()
         {
             var result = _controller.ExternalLoginFailure();
@@ -708,7 +809,7 @@ namespace TrackerWeb.Tests
             _signInManager.Dispose();
         }
 
-        private void SetupControllerForTests(Controller controller)
+        private void SetupControllerForTests(Controller controller, bool identityAuthenticated = false)
         {
             var owinContext = new OwinContext();
             owinContext.Set(_userManager);
@@ -720,6 +821,11 @@ namespace TrackerWeb.Tests
             var session = new Mock<HttpSessionStateBase>();
             var server = new Mock<HttpServerUtilityBase>();
             var principal = new Mock<IPrincipal>();
+            var identity = new Mock<IIdentity>();
+
+            principal.Setup(p => p.Identity).Returns(identity.Object);
+
+            identity.SetupGet(i => i.IsAuthenticated).Returns(identityAuthenticated);
 
             context.Setup(ctx => ctx.Request).Returns(request.Object);
             context.Setup(ctx => ctx.Response).Returns(response.Object);
