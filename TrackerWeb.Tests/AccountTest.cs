@@ -337,6 +337,69 @@ namespace TrackerWeb.Tests
             Assert.AreEqual(viewResult.ViewName, "ConfirmEmail");
         }
 
+        [TestMethod]
+        public void TestForgotPasswordView()
+        {
+            var result = _controller.ForgotPassword();
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+        }
+
+        [TestMethod]
+        public async Task TestForgotPasswordBadModelState()
+        {
+            var model = new ForgotPasswordViewModel();
+            _controller.ModelState.AddModelError("Error", "SomeError");
+            var result = await _controller.ForgotPassword(model);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        //TODO: Password recovery not implemented yet
+        [Ignore]
+        [TestMethod]
+        public async Task TestForgotPasswordSuccessForExisting()
+        {
+            var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            await _userStore.SetEmailConfirmedAsync(user, true);
+
+            var model = new ForgotPasswordViewModel {Email = TestConfig.TestUserEmail};
+
+            var result = await _controller.ForgotPassword(model);
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "ForgotPasswordConfirmation");
+        }
+
+        [TestMethod]
+        public async Task TestForgotPasswordSuccessForNonConfirmed()
+        {
+            var model = new ForgotPasswordViewModel {Email = TestConfig.TestUserEmail};
+
+            var result = await _controller.ForgotPassword(model);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "ForgotPasswordConfirmation");
+        }
+
+        [TestMethod]
+        public async Task TestForgotPasswordSuccessForNonExistent()
+        {
+            var model = new ForgotPasswordViewModel {Email = ""};
+
+            var result = await _controller.ForgotPassword(model);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "ForgotPasswordConfirmation");
+        }
+
+        [TestMethod]
+        public void TestForgotPasswordConfirmationView()
+        {
+            var result = _controller.ForgotPasswordConfirmation();
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
