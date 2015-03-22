@@ -1,19 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Security.Principal;
+using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
-using System.Web.Routing;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin;
-using Microsoft.Owin.Security;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using TrackerWeb.Controllers;
-using TrackerWeb.Models;
-using TrackerWeb.Tests.Mocks;
 
 namespace TrackerWeb.Tests
 {
@@ -46,8 +36,40 @@ namespace TrackerWeb.Tests
             Assert.AreSame(controller.SignInManager, SignInManager);
         }
 
+        [TestMethod]
+        public async Task TestIndexView()
+        {
+            var result = await _controller.Index(null);
+            Assert.AreEqual(_controller.ViewBag.StatusMessage, "");
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestIndexViewMessages()
+        {
+            var values = Enum.GetValues(typeof(ManageController.ManageMessageId)).Cast<ManageController.ManageMessageId>();
+            foreach (var value in values)
+            {
+                await _controller.Index(value);
+                Assert.AreNotEqual(_controller.ViewBag.StatusMessage, "", string.Format("Message for enum value {0} must not be empty", value));
+            }
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public async Task TestIndexBadUserId()
+        {
+            var controller = new ManageController(UserManager, SignInManager);
+            Identity = CreateClaimsIdentity("qwerty", "qwerty", "qwerty");
+            SetupControllerForTests(controller, true);
+
+            await controller.Index(null);
+        }
+
         [TestCleanup]
-        protected override void Cleanup()
+        public override void Cleanup()
         {
             _controller.Dispose();
             base.Cleanup();

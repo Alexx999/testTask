@@ -750,7 +750,7 @@ namespace TrackerWeb.Tests
         }
 
         [TestCleanup]
-        protected override void Cleanup()
+        public override void Cleanup()
         {
             _controller.Dispose();
             base.Cleanup();

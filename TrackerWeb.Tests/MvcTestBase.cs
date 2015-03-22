@@ -21,7 +21,7 @@ namespace TrackerWeb.Tests
         protected ApplicationSignInManager SignInManager;
         protected TestUserStore<ApplicationUser> UserStore;
         protected Mock<IAuthenticationManager> AuthMock;
-        private ClaimsIdentity _identity;
+        protected ClaimsIdentity Identity;
 
 
         protected void Init()
@@ -52,13 +52,8 @@ namespace TrackerWeb.Tests
             mockAuthenticationManager.Setup(am => am.SignIn(It.IsAny<ClaimsIdentity[]>())).Verifiable();
 
             var user = UserManager.FindByEmailAsync(TestConfig.TestUserEmail).Result;
-            _identity = new ClaimsIdentity(new[]
-                {
-                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", user.Id, "String", "TestIssuer"),
-                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", user.Email),
-                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", user.Name)
-                }, "TestAuth");
-            var authenticateResult = new AuthenticateResult(_identity, new AuthenticationProperties(), new AuthenticationDescription());
+            Identity = CreateClaimsIdentity(user.Id, user.Email, user.Name);
+            var authenticateResult = new AuthenticateResult(Identity, new AuthenticationProperties(), new AuthenticationDescription());
             if (hasAuthenticatedUser)
             {
                 mockAuthenticationManager.Setup(am => am.AuthenticateAsync("TwoFactorCookie")).ReturnsAsync(authenticateResult);
@@ -68,6 +63,16 @@ namespace TrackerWeb.Tests
                 mockAuthenticationManager.Setup(am => am.AuthenticateAsync("ExternalCookie")).ReturnsAsync(authenticateResult);
             }
             return mockAuthenticationManager;
+        }
+
+        protected ClaimsIdentity CreateClaimsIdentity(string userId, string userEmail, string userName)
+        {
+            return new ClaimsIdentity(new[]
+                {
+                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", userId, "String", "TestIssuer"),
+                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", userEmail),
+                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", userName)
+                }, "TestAuth");
         }
 
 
@@ -87,7 +92,7 @@ namespace TrackerWeb.Tests
             
             if (identityAuthenticated)
             {
-                principal.Setup(p => p.Identity).Returns(_identity);
+                principal.Setup(p => p.Identity).Returns(Identity);
             }
             else
             {
@@ -117,7 +122,7 @@ namespace TrackerWeb.Tests
 
         protected abstract string GetControllerPath();
 
-        protected virtual void Cleanup()
+        public virtual void Cleanup()
         {
             UserManager.Dispose();
             SignInManager.Dispose();

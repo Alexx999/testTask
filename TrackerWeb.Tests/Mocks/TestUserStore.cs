@@ -150,7 +150,7 @@ namespace TrackerWeb.Tests.Mocks
             if (user is IdentityUser)
             {
                 var iu = user as IdentityUser;
-                return SetEmailAsync(user, iu.Email);
+                SetEmailAsync(user, iu.Email);
             }
             return _completedTask;
         }
