@@ -107,6 +107,13 @@ namespace TrackerWeb.Tests
             Assert.IsInstanceOfType(result, typeof(ViewResult));
         }
 
+        [TestCleanup]
+        public void Cleanup()
+        {
+            _controller.Dispose();
+            _userManager.Dispose();
+            _signInManager.Dispose();
+        }
 
         private static void SetupControllerForTests(Controller controller)
         {

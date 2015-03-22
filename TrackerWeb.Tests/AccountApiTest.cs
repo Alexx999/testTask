@@ -130,6 +130,13 @@ namespace TrackerWeb.Tests
             Assert.IsTrue((await validator.ValidateAsync("!werT1")).Succeeded);
         }
 
+        [TestCleanup]
+        public void Cleanup()
+        {
+            _controller.Dispose();
+            _userManager.Dispose();
+        }
+
         private static bool Validate(RegisterModel model)
         {
             var context = new ValidationContext(model, null, null);
