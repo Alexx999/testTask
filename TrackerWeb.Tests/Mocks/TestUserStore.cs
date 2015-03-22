@@ -7,387 +7,303 @@ using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace TrackerWeb.Tests.Mocks
 {
-    internal class TestUserStore<T> : IUserStore<T>, IUserEmailStore<T>, IUserPasswordStore<T>, IUserLockoutStore<T, string>, IUserTwoFactorStore<T, string>, IUserPhoneNumberStore<T> where T : class, IUser<string>
+    internal class TestUserStore<TUser> : IUserStore<TUser>, IUserEmailStore<TUser>, IUserPasswordStore<TUser>, IUserLockoutStore<TUser, string>, IUserTwoFactorStore<TUser, string>, IUserPhoneNumberStore<TUser> where TUser : class, IUser<string>
     {
-        private readonly Task CompletedTask = Task.FromResult(false);
-        private List<T> _users = new List<T>();
-        private Dictionary<string, EmailData> _emails = new Dictionary<string, EmailData>();
-        private Dictionary<string, string> _passwords = new Dictionary<string, string>();
-        private Dictionary<string, LockoutData> _lockouts = new Dictionary<string, LockoutData>();
-        private Dictionary<string, bool> _twoFactor = new Dictionary<string, bool>();
-        private Dictionary<string, PhoneData> _phones = new Dictionary<string, PhoneData>();
+        private readonly Task _completedTask = Task.FromResult(false);
+        private Dictionary<string, UserData<TUser>> _data = new Dictionary<string, UserData<TUser>>(); 
 
         public void Dispose()
         {
         }
 
-        public Task CreateAsync(T user)
+        private UserData<TUser> GetOrCreate(TUser user)
         {
-            lock (_users)
+            UserData<TUser> result;
+            lock (_data)
             {
-                _users.Add(user);
-            }
-            return CompletedTask;
-        }
-
-        public Task UpdateAsync(T user)
-        {
-            var existing = FindById(user.Id);
-            if (!ReferenceEquals(user, existing))
-            {
-                lock (_users)
+                if (!_data.TryGetValue(user.Id, out result))
                 {
-                    _users.Remove(existing);
-                    _users.Add(user);
+                    result = new UserData<TUser>() {User = user};
+                    _data[user.Id] = result;
                 }
             }
-            return CompletedTask;
+            return result;
         }
 
-        public Task DeleteAsync(T user)
+        private UserData<TUser> Get(TUser user)
         {
-            lock (_users)
+            UserData<TUser> result;
+            lock (_data)
             {
-                _users.Remove(user);
-            }
-            return CompletedTask;
-        }
-
-        public Task<T> FindByIdAsync(string userId)
-        {
-            lock (_users)
-            {
-                var user = _users.FirstOrDefault(u => u.Id == userId);
-                return Task.FromResult(user);
-            }
-        }
-
-        public Task<T> FindByNameAsync(string userName)
-        {
-            lock (_users)
-            {
-                var user = _users.FirstOrDefault(u => u.UserName == userName);
-                return Task.FromResult(user);
-            }
-        }
-
-        public T FindById(string userId)
-        {
-            lock (_users)
-            {
-                return _users.FirstOrDefault(u => u.Id == userId);
-            }
-        }
-
-        public T FindByName(string userName)
-        {
-            lock (_users)
-            {
-                return _users.FirstOrDefault(u => u.UserName == userName);
-            }
-        }
-
-        public Task SetEmailAsync(T user, string email)
-        {
-            lock (_emails)
-            {
-                _emails[user.Id] = new EmailData(email, false);
-            }
-            return CompletedTask;
-        }
-
-        public Task<string> GetEmailAsync(T user)
-        {
-            EmailData data;
-
-            lock (_emails)
-            {
-                if (_emails.TryGetValue(user.Id, out data))
+                if (_data.TryGetValue(user.Id, out result))
                 {
-                    return Task.FromResult(data.Address);
+                    return result;
                 }
             }
+            return null;
+        }
+
+        public Task CreateAsync(TUser user)
+        {
+            GetOrCreate(user).User = user;
+            return _completedTask;
+        }
+
+        public Task UpdateAsync(TUser user)
+        {
+            GetOrCreate(user).User = user;
+            return _completedTask;
+        }
+
+        public Task DeleteAsync(TUser user)
+        {
+            lock (_data)
+            {
+                if (_data.ContainsKey(user.Id))
+                {
+                    _data.Remove(user.Id);
+                }
+            }
+            return _completedTask;
+        }
+
+        public Task<TUser> FindByIdAsync(string userId)
+        {
+            UserData<TUser> result;
+
+            lock (_data)
+            {
+                if (!_data.TryGetValue(userId, out result))
+                {
+                    return Task.FromResult((TUser)null);
+                }
+            }
+            return Task.FromResult(result.User);
+        }
+
+        public Task<TUser> FindByNameAsync(string userName)
+        {
+            lock (_data)
+            {
+                var result = _data.Values.FirstOrDefault(d => d.User.UserName == userName);
+                if (result != null)
+                {
+                    return Task.FromResult(result.User);
+                }
+            }
+            return Task.FromResult((TUser)null);
+        }
+
+        public Task SetEmailAsync(TUser user, string email)
+        {
+            var data = GetOrCreate(user);
+            data.Email = email;
+            return _completedTask;
+        }
+
+        public Task<string> GetEmailAsync(TUser user)
+        {
+            var data = Get(user);
+            if (data != null)
+            {
+                return Task.FromResult(data.Email);
+            }
+
             return Task.FromResult((string)null);
         }
 
-        public Task<bool> GetEmailConfirmedAsync(T user)
+        public Task<bool> GetEmailConfirmedAsync(TUser user)
         {
-            EmailData data;
-
-            lock (_emails)
+            var data = Get(user);
+            if (data != null)
             {
-                if (_emails.TryGetValue(user.Id, out data))
-                {
-                    return Task.FromResult(data.Confirmed);
-                }
+                return Task.FromResult(data.EmailConfirmed);
             }
+
             return Task.FromResult(false);
         }
 
-        public Task SetEmailConfirmedAsync(T user, bool confirmed)
+        public Task SetEmailConfirmedAsync(TUser user, bool confirmed)
         {
-            EmailData data;
-
-            lock (_emails)
-            {
-                if (_emails.TryGetValue(user.Id, out data))
-                {
-                    data.Confirmed = confirmed;
-                    _emails[user.Id] = data;
-                }
-            }
-            return CompletedTask;
+            var data = GetOrCreate(user);
+            data.EmailConfirmed = confirmed;
+            return _completedTask;
         }
 
-        public Task<T> FindByEmailAsync(string email)
+        public Task<TUser> FindByEmailAsync(string email)
         {
-            lock (_emails)
+            lock (_data)
             {
-                if (_emails.Any(kvp => kvp.Value.Address == email))
+                var result = _data.Values.FirstOrDefault(d => d.Email == email);
+                if (result != null)
                 {
-                    var id = _emails.First(kvp => kvp.Value.Address == email).Key;
-                    return FindByIdAsync(id);
+                    return Task.FromResult(result.User);
                 }
             }
-            return Task.FromResult((T) null);
+            return Task.FromResult((TUser)null);
         }
 
-        private struct EmailData
+        public Task SetPasswordHashAsync(TUser user, string passwordHash)
         {
-            public string Address;
-            public bool Confirmed;
-
-            public EmailData(string address, bool confirmed)
+            var data = GetOrCreate(user);
+            data.PasswordHash = passwordHash;
+            if (user is IdentityUser)
             {
-                Address = address;
-                Confirmed = confirmed;
+                var iu = user as IdentityUser;
+                return SetEmailAsync(user, iu.Email);
             }
+            return _completedTask;
         }
 
-        public Task SetPasswordHashAsync(T user, string passwordHash)
+        public Task<string> GetPasswordHashAsync(TUser user)
         {
-            if (FindById(user.Id) == null)
+            var data = Get(user);
+            if (data != null)
             {
-                CreateAsync(user);
-                if (user is IdentityUser)
-                {
-                    var iu = user as IdentityUser;
-                    SetEmailAsync(user, iu.Email);
-                }
+                return Task.FromResult(data.PasswordHash);
             }
-            lock (_passwords)
-            {
-                _passwords[user.Id] = passwordHash;
-            }
-            return CompletedTask;
-        }
 
-        public Task<string> GetPasswordHashAsync(T user)
-        {
-            string result;
-            lock (_passwords)
-            {
-                if (_passwords.TryGetValue(user.Id, out result))
-                {
-                    return Task.FromResult(result);
-                }
-            }
             return Task.FromResult((string)null);
         }
 
-        public Task<bool> HasPasswordAsync(T user)
+        public Task<bool> HasPasswordAsync(TUser user)
         {
-            lock (_passwords)
+            var data = Get(user);
+            if (data != null)
             {
-                return Task.FromResult(_passwords.ContainsKey(user.Id));
+                return Task.FromResult(!string.IsNullOrEmpty(data.PasswordHash));
             }
+
+            return Task.FromResult(false);
         }
 
-        public Task<DateTimeOffset> GetLockoutEndDateAsync(T user)
+        public Task<DateTimeOffset> GetLockoutEndDateAsync(TUser user)
         {
-            lock (_lockouts)
+            var data = Get(user);
+            if (data != null)
             {
-                LockoutData data;
-                if (_lockouts.TryGetValue(user.Id, out data))
-                {
-                    return Task.FromResult(data.LockoutOffset);
-                }
+                return Task.FromResult(data.LockoutEnd);
             }
-            return Task.FromResult(DateTimeOffset.UtcNow);
+
+            return Task.FromResult(default(DateTimeOffset));
         }
 
-        public Task SetLockoutEndDateAsync(T user, DateTimeOffset lockoutEnd)
+        public Task SetLockoutEndDateAsync(TUser user, DateTimeOffset lockoutEnd)
         {
-            lock (_lockouts)
-            {
-                LockoutData data;
-                if (!_lockouts.TryGetValue(user.Id, out data))
-                {
-                    data = new LockoutData();
-                    _lockouts[user.Id] = data;
-                }
-                data.LockoutOffset = lockoutEnd;
-            }
-            return CompletedTask;
+            var data = GetOrCreate(user);
+            data.LockoutEnd = lockoutEnd;
+            return _completedTask;
         }
 
-        public Task<int> IncrementAccessFailedCountAsync(T user)
+        public Task<int> IncrementAccessFailedCountAsync(TUser user)
         {
-            lock (_lockouts)
+            var data = GetOrCreate(user);
+            data.FailedCount++;
+            return Task.FromResult(data.FailedCount);
+        }
+
+        public Task ResetAccessFailedCountAsync(TUser user)
+        {
+            var data = GetOrCreate(user);
+            data.FailedCount = 0;
+            return _completedTask;
+        }
+
+        public Task<int> GetAccessFailedCountAsync(TUser user)
+        {
+            var data = Get(user);
+            if (data != null)
             {
-                LockoutData data;
-                if (!_lockouts.TryGetValue(user.Id, out data))
-                {
-                    data = new LockoutData();
-                    _lockouts[user.Id] = data;
-                }
-                data.FailedCount++;
                 return Task.FromResult(data.FailedCount);
             }
-        }
 
-        public Task ResetAccessFailedCountAsync(T user)
-        {
-            lock (_lockouts)
-            {
-                LockoutData data;
-                if (!_lockouts.TryGetValue(user.Id, out data))
-                {
-                    data = new LockoutData();
-                    _lockouts[user.Id] = data;
-                }
-                data.FailedCount = 0;
-            }
-            return CompletedTask;
-        }
-
-        public Task<int> GetAccessFailedCountAsync(T user)
-        {
-            lock (_lockouts)
-            {
-                LockoutData data;
-                if (_lockouts.TryGetValue(user.Id, out data))
-                {
-                    return Task.FromResult(data.FailedCount);
-                }
-            }
             return Task.FromResult(0);
         }
 
-        public Task<bool> GetLockoutEnabledAsync(T user)
+        public Task<bool> GetLockoutEnabledAsync(TUser user)
         {
-            lock (_lockouts)
+            var data = Get(user);
+            if (data != null)
             {
-                LockoutData data;
-                if (_lockouts.TryGetValue(user.Id, out data))
-                {
-                    return Task.FromResult(data.LockoutEnabled);
-                }
+                return Task.FromResult(data.LockoutEnabled);
             }
+
             return Task.FromResult(false);
         }
 
-        public Task SetLockoutEnabledAsync(T user, bool enabled)
+        public Task SetLockoutEnabledAsync(TUser user, bool enabled)
         {
-            lock (_lockouts)
-            {
-                LockoutData data;
-                if (!_lockouts.TryGetValue(user.Id, out data))
-                {
-                    data = new LockoutData();
-                    _lockouts[user.Id] = data;
-                }
-                data.LockoutEnabled = enabled;
-            }
-            return CompletedTask;
+            var data = GetOrCreate(user);
+            data.LockoutEnabled = enabled;
+            return _completedTask;
         }
 
-        private class LockoutData
+        public Task SetTwoFactorEnabledAsync(TUser user, bool enabled)
         {
-            public DateTimeOffset LockoutOffset;
-            public int FailedCount;
-            public bool LockoutEnabled;
+            var data = GetOrCreate(user);
+            data.TwoFactorEnabled = enabled;
+            return _completedTask;
         }
 
-        public Task SetTwoFactorEnabledAsync(T user, bool enabled)
+        public Task<bool> GetTwoFactorEnabledAsync(TUser user)
         {
-            lock (_twoFactor)
+            var data = Get(user);
+            if (data != null)
             {
-                _twoFactor[user.Id] = enabled;
+                return Task.FromResult(data.TwoFactorEnabled);
             }
-            return CompletedTask;
+
+            return Task.FromResult(false);
         }
 
-        public Task<bool> GetTwoFactorEnabledAsync(T user)
+        public Task SetPhoneNumberAsync(TUser user, string phoneNumber)
         {
-            bool result;
-            lock (_twoFactor)
-            {
-                _twoFactor.TryGetValue(user.Id, out result);
-            }
-            return Task.FromResult(result);
+            var data = GetOrCreate(user);
+            data.PhoneNumber = phoneNumber;
+            return _completedTask;
         }
 
-        public Task SetPhoneNumberAsync(T user, string phoneNumber)
+        public Task<string> GetPhoneNumberAsync(TUser user)
         {
-            lock (_phones)
+            var data = Get(user);
+            if (data != null)
             {
-                PhoneData data;
-                if (!_phones.TryGetValue(user.Id, out data))
-                {
-                    data = new PhoneData();
-                    _phones[user.Id] = data;
-                }
-                data.PhoneNumber = phoneNumber;
+                return Task.FromResult(data.PhoneNumber);
             }
-            return CompletedTask;
-        }
 
-        public Task<string> GetPhoneNumberAsync(T user)
-        {
-            lock (_phones)
-            {
-                PhoneData data;
-                if (_phones.TryGetValue(user.Id, out data))
-                {
-                    return Task.FromResult(data.PhoneNumber);
-                }
-            }
             return Task.FromResult((string)null);
         }
 
-        public Task<bool> GetPhoneNumberConfirmedAsync(T user)
+        public Task<bool> GetPhoneNumberConfirmedAsync(TUser user)
         {
-            lock (_phones)
+            var data = Get(user);
+            if (data != null)
             {
-                PhoneData data;
-                if (_phones.TryGetValue(user.Id, out data))
-                {
-                    return Task.FromResult(data.Confirmed);
-                }
+                return Task.FromResult(data.PhoneConfirmed);
             }
+
             return Task.FromResult(false);
         }
 
-        public Task SetPhoneNumberConfirmedAsync(T user, bool confirmed)
+        public Task SetPhoneNumberConfirmedAsync(TUser user, bool confirmed)
         {
-            lock (_phones)
-            {
-                PhoneData data;
-                if (!_phones.TryGetValue(user.Id, out data))
-                {
-                    data = new PhoneData();
-                    _phones[user.Id] = data;
-                }
-                data.Confirmed = confirmed;
-            }
-            return CompletedTask;
+            var data = GetOrCreate(user);
+            data.PhoneConfirmed = confirmed;
+            return _completedTask;
         }
+    }
 
-        private class PhoneData
-        {
-            public string PhoneNumber;
-            public bool Confirmed;
-        }
+    internal class UserData<TUser>
+    {
+        public TUser User;
+        public string Email;
+        public bool EmailConfirmed;
+        public string PasswordHash;
+        public DateTimeOffset LockoutEnd;
+        public int FailedCount;
+        public bool LockoutEnabled;
+        public bool TwoFactorEnabled;
+        public string PhoneNumber;
+        public bool PhoneConfirmed;
     }
 }
