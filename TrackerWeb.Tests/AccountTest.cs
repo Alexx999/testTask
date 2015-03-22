@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -29,10 +32,7 @@ namespace TrackerWeb.Tests
         {
             _userStore = new TestUserStore<ApplicationUser>();
             _userManager = ApplicationUserManager.Create(_userStore);
-            var mockAuthenticationManager = new Mock<IAuthenticationManager>();
-            mockAuthenticationManager.Setup(am => am.SignOut());
-            mockAuthenticationManager.Setup(am => am.SignIn());
-            _signInManager = new ApplicationSignInManager(_userManager, mockAuthenticationManager.Object);
+            _signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(false));
             _controller = new AccountController(_userManager, _signInManager);
             SetupControllerForTests(_controller);
             var user = new ApplicationUser()
@@ -42,6 +42,20 @@ namespace TrackerWeb.Tests
                 UserName = TestConfig.TestUserEmail
             };
             _userManager.CreateAsync(user, TestConfig.TestUserPassword).Wait();
+        }
+
+        private IAuthenticationManager GetAuthenticationManager(bool hasAuthenticatedUser)
+        {
+            var mockAuthenticationManager = new Mock<IAuthenticationManager>();
+            mockAuthenticationManager.Setup(am => am.SignOut());
+            mockAuthenticationManager.Setup(am => am.SignIn());
+            if (hasAuthenticatedUser)
+            {
+                var identity = new ClaimsIdentity(new []{ new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", "userId")});
+                var result = new AuthenticateResult(identity, new AuthenticationProperties(), new AuthenticationDescription());
+                mockAuthenticationManager.Setup(am => am.AuthenticateAsync(It.IsAny<string>())).ReturnsAsync(result);
+            }
+            return mockAuthenticationManager.Object;
         }
 
 
@@ -60,6 +74,17 @@ namespace TrackerWeb.Tests
             Assert.IsInstanceOfType(result, typeof(RedirectResult));
             var redirectResult = (RedirectResult) result;
             Assert.AreEqual(redirectResult.Url, "/Test");
+        }
+
+        [TestMethod]
+        public async Task TestAccountLoginBadRedirectUrl()
+        {
+            var viewModel = new LoginViewModel { Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword };
+            var result = await _controller.Login(viewModel, "http://nowhere.net/");
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["controller"], "Home");
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
         }
 
         [TestMethod]
@@ -88,7 +113,7 @@ namespace TrackerWeb.Tests
             var result = await _controller.Login(viewModel, "/Test");
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteName, "");
+            Assert.IsNull(redirectResult.RouteValues["controller"]);
             Assert.AreEqual(redirectResult.RouteValues["action"], "SendCode");
         }
 
@@ -109,15 +134,7 @@ namespace TrackerWeb.Tests
             var result = await _controller.Login(viewModel, "/Test");
             Assert.IsInstanceOfType(result, typeof(ViewResult));
         }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            _controller.Dispose();
-            _userManager.Dispose();
-            _signInManager.Dispose();
-        }
-
+        
         [TestMethod]
         public void TestUserManagerGetter()
         {
@@ -134,6 +151,100 @@ namespace TrackerWeb.Tests
             Assert.AreSame(controller.SignInManager, _signInManager);
         }
 
+        [TestMethod]
+        public void TestAuthorize()
+        {
+            var result = _controller.Authorize();
+            Assert.IsInstanceOfType(result, typeof(EmptyResult));
+        }
+
+        [TestMethod]
+        public async Task TestVerifyCodeIndex()
+        {
+            var signInManager = new ApplicationSignInManager(_userManager, GetAuthenticationManager(true));
+            var controller = new AccountController(_userManager, signInManager);
+            SetupControllerForTests(controller);
+
+            var result = await controller.VerifyCode("", "", false);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult) result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestVerifyCodeIndexError()
+        {
+            var result = await _controller.VerifyCode("", "", false);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult) result;
+            Assert.AreEqual(viewResult.ViewName, "Error");
+        }
+
+        [TestMethod]
+        public async Task TestVerifyCodeError()
+        {
+            var verifyViewModel = new VerifyCodeViewModel();
+            var result = await _controller.VerifyCode(verifyViewModel);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult) result;
+            Assert.IsFalse(_controller.ModelState.IsValid);
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestVerifyCodeBadModelState()
+        {
+            var verifyViewModel = new VerifyCodeViewModel();
+            _controller.ModelState.AddModelError("Error", "Some error");
+            var result = await _controller.VerifyCode(verifyViewModel);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult) result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestVerifyCodeSuccess()
+        {
+            var signIn = new Mock<ApplicationSignInManager>(_userManager, GetAuthenticationManager(true));
+            signIn.Setup(
+                si => si.TwoFactorSignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                .ReturnsAsync(SignInStatus.Success);
+            var controller = new AccountController(_userManager, signIn.Object);
+            SetupControllerForTests(controller);
+
+            var verifyViewModel = new VerifyCodeViewModel();
+            var result = await controller.VerifyCode(verifyViewModel);
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["controller"], "Home");
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
+        }
+
+        [TestMethod]
+        public async Task TestVerifyCodeLockout()
+        {
+            var signIn = new Mock<ApplicationSignInManager>(_userManager, GetAuthenticationManager(true));
+            signIn.Setup(
+                si => si.TwoFactorSignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                .ReturnsAsync(SignInStatus.LockedOut);
+            var controller = new AccountController(_userManager, signIn.Object);
+            SetupControllerForTests(controller);
+
+            var verifyViewModel = new VerifyCodeViewModel();
+            var result = await controller.VerifyCode(verifyViewModel);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "Lockout");
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            _controller.Dispose();
+            _userManager.Dispose();
+            _signInManager.Dispose();
+        }
+
         private void SetupControllerForTests(Controller controller)
         {
             var owinContext = new OwinContext();
@@ -145,11 +256,13 @@ namespace TrackerWeb.Tests
             var response = new Mock<HttpResponseBase>();
             var session = new Mock<HttpSessionStateBase>();
             var server = new Mock<HttpServerUtilityBase>();
+            var principal = new Mock<IPrincipal>();
 
             context.Setup(ctx => ctx.Request).Returns(request.Object);
             context.Setup(ctx => ctx.Response).Returns(response.Object);
             context.Setup(ctx => ctx.Session).Returns(session.Object);
             context.Setup(ctx => ctx.Server).Returns(server.Object);
+            context.Setup(ctx => ctx.User).Returns(principal.Object);
 
             request.SetupGet(x => x.ApplicationPath).Returns("/");
             request.SetupGet(x => x.Url).Returns(new Uri("http://localhost/Account", UriKind.Absolute));
