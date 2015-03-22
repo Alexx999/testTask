@@ -7,7 +7,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace TrackerWeb.Tests.Mocks
 {
-    public class TestUserStore<TUser> : IUserStore<TUser>, IUserEmailStore<TUser>, IUserPasswordStore<TUser>, IUserLockoutStore<TUser, string>, IUserTwoFactorStore<TUser, string>, IUserPhoneNumberStore<TUser>, IUserLoginStore<TUser> where TUser : class, IUser<string>
+    public class TestUserStore<TUser> : IUserStore<TUser>, IUserEmailStore<TUser>, IUserPasswordStore<TUser>, IUserLockoutStore<TUser, string>, IUserTwoFactorStore<TUser, string>, IUserPhoneNumberStore<TUser>, IUserLoginStore<TUser>, IUserSecurityStampStore<TUser> where TUser : class, IUser<string>
     {
         private readonly Task _completedTask = Task.FromResult(false);
         private Dictionary<string, UserData<TUser>> _data = new Dictionary<string, UserData<TUser>>(); 
@@ -331,6 +331,24 @@ namespace TrackerWeb.Tests.Mocks
             }
             return data == null ? Task.FromResult((TUser) null) : Task.FromResult(data.User);
         }
+
+        public Task SetSecurityStampAsync(TUser user, string stamp)
+        {
+            var data = GetOrCreate(user);
+            data.SecurityStamp = stamp;
+            return _completedTask;
+        }
+
+        public Task<string> GetSecurityStampAsync(TUser user)
+        {
+            var data = Get(user);
+            if (data != null)
+            {
+                return Task.FromResult(data.SecurityStamp);
+            }
+
+            return Task.FromResult((string)null);
+        }
     }
 
     internal class UserData<TUser>
@@ -345,6 +363,7 @@ namespace TrackerWeb.Tests.Mocks
         public bool TwoFactorEnabled;
         public string PhoneNumber;
         public bool PhoneConfirmed;
+        public string SecurityStamp;
         public List<UserLoginInfo> Logins = new List<UserLoginInfo>();
     }
 }

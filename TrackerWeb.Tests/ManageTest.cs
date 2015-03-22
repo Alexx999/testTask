@@ -100,6 +100,38 @@ namespace TrackerWeb.Tests
             Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.RemoveLoginSuccess);
         }
 
+        [TestMethod]
+        public void TestAddPhoneNumberView()
+        {
+            var result = _controller.AddPhoneNumber();
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestAddPhoneNumberBadModelState()
+        {
+            var model = new AddPhoneNumberViewModel();
+
+            _controller.ModelState.AddModelError("Error", "Some Error");
+            var result = await _controller.AddPhoneNumber(model);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestAddPhoneNumberSuccess()
+        {
+            var model = new AddPhoneNumberViewModel {Number = "0000000000"};
+
+            var result = await _controller.AddPhoneNumber(model);
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "VerifyPhoneNumber");
+        }
+
         [TestCleanup]
         public override void Cleanup()
         {

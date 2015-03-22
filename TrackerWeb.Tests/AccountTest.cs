@@ -706,6 +706,9 @@ namespace TrackerWeb.Tests
             userManager.Setup(
                 si => si.AddLoginAsync(It.IsAny<string>(), It.IsAny<UserLoginInfo>()))
                 .ReturnsAsync(new TestIdentityResult(true));
+            userManager.Setup(
+                si => si.GetSecurityStampAsync(It.IsAny<string>()))
+                .ReturnsAsync("TestStamp");
             var signInManeger = new ApplicationSignInManager(userManager.Object, GetAuthenticationManager(false, true));
             var controller = new AccountController(userManager.Object, signInManeger);
             SetupControllerForTests(controller);
