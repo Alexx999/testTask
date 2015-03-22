@@ -135,10 +135,10 @@
     <Reference Include="System.Net.Http.WebRequest" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mock\TestUserStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AccountApiTest.cs" />
     <Compile Include="TestConfig.cs" />
-    <Compile Include="TestUserStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.config" />
