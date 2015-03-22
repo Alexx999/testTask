@@ -2,8 +2,12 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using TrackerWeb.Controllers;
+using TrackerWeb.Models;
+using TrackerWeb.Tests.Mocks;
 
 namespace TrackerWeb.Tests
 {
@@ -66,6 +70,34 @@ namespace TrackerWeb.Tests
             SetupControllerForTests(controller, true);
 
             await controller.Index(null);
+        }
+
+        [TestMethod]
+        public async Task TestRemoveLoginError()
+        {
+            var userManager = new Mock<ApplicationUserManager>(UserStore) { CallBase = true };
+            userManager.Setup(
+                si => si.RemoveLoginAsync(It.IsAny<string>(), It.IsAny<UserLoginInfo>()))
+                .ReturnsAsync(new TestIdentityResult(false));
+            var signInManeger = new ApplicationSignInManager(userManager.Object, GetAuthenticationManager(false, true));
+            var controller = new ManageController(userManager.Object, signInManeger);
+            SetupControllerForTests(controller);
+
+            var result = await controller.RemoveLogin("", "");
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "ManageLogins");
+            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.Error);
+        }
+
+        [TestMethod]
+        public async Task TestRemoveLoginSuccess()
+        {
+            var result = await _controller.RemoveLogin("", "");
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "ManageLogins");
+            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.RemoveLoginSuccess);
         }
 
         [TestCleanup]
