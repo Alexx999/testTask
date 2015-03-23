@@ -150,6 +150,7 @@
     <Compile Include="Mocks\TestIdentityResult.cs" />
     <Compile Include="Mocks\TestDataProtection.cs" />
     <Compile Include="ManageTest.cs" />
+    <Compile Include="OAuthTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.config" />

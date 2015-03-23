@@ -69,6 +69,8 @@ namespace TrackerWeb.Tests.Mocks
 
         public Task<TUser> FindByIdAsync(string userId)
         {
+            if (userId == null) return Task.FromResult((TUser)null);
+
             UserData<TUser> result;
 
             lock (_data)

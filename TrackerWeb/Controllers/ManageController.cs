@@ -16,6 +16,7 @@ namespace TrackerWeb.Controllers
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
+        private IAuthenticationManager _authManager;
 
         public ManageController()
         {
@@ -25,6 +26,7 @@ namespace TrackerWeb.Controllers
         {
             UserManager = userManager;
             SignInManager = signInManager;
+            AuthenticationManager = signInManager.AuthenticationManager;
         }
 
         public ApplicationSignInManager SignInManager
@@ -55,15 +57,7 @@ namespace TrackerWeb.Controllers
         // GET: /Manage/Index
         public async Task<ActionResult> Index(ManageMessageId? message)
         {
-            ViewBag.StatusMessage =
-                message == ManageMessageId.ChangePasswordSuccess ? "Your password has been changed."
-                : message == ManageMessageId.SetPasswordSuccess ? "Your password has been set."
-                : message == ManageMessageId.SetTwoFactorSuccess ? "Your two-factor authentication provider has been set."
-                : message == ManageMessageId.Error ? "An error has occurred."
-                : message == ManageMessageId.AddPhoneSuccess ? "Your phone number was added."
-                : message == ManageMessageId.RemovePhoneSuccess ? "Your phone number was removed."
-                : message == ManageMessageId.RemoveLoginSuccess ? "Your login was removed."
-                : "";
+            ViewBag.StatusMessage = GetStatusMessage(message);
 
             var userId = User.Identity.GetUserId();
             var model = new IndexViewModel
@@ -164,10 +158,8 @@ namespace TrackerWeb.Controllers
 
         //
         // GET: /Manage/VerifyPhoneNumber
-        public async Task<ActionResult> VerifyPhoneNumber(string phoneNumber)
+        public ActionResult VerifyPhoneNumber(string phoneNumber)
         {
-            var code = await UserManager.GenerateChangePhoneNumberTokenAsync(User.Identity.GetUserId(), phoneNumber);
-            // Send an SMS through the SMS provider to verify the phone number
             return phoneNumber == null ? View("Error") : View(new VerifyPhoneNumberViewModel { PhoneNumber = phoneNumber });
         }
 
@@ -280,10 +272,8 @@ namespace TrackerWeb.Controllers
         // GET: /Manage/ManageLogins
         public async Task<ActionResult> ManageLogins(ManageMessageId? message)
         {
-            ViewBag.StatusMessage =
-                message == ManageMessageId.RemoveLoginSuccess ? "The external login was removed."
-                : message == ManageMessageId.Error ? "An error has occurred."
-                : "";
+            ViewBag.StatusMessage = GetStatusMessage(message);
+
             var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
             if (user == null)
             {
@@ -313,7 +303,7 @@ namespace TrackerWeb.Controllers
         // GET: /Manage/LinkLoginCallback
         public async Task<ActionResult> LinkLoginCallback()
         {
-            var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync(XsrfKey, User.Identity.GetUserId());
+            var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync(ChallengeResult.XsrfKey, User.Identity.GetUserId());
             if (loginInfo == null)
             {
                 return RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
@@ -334,14 +324,16 @@ namespace TrackerWeb.Controllers
         }
 
         #region Helpers
-        // Used for XSRF protection when adding external logins
-        private const string XsrfKey = "XsrfId";
 
         private IAuthenticationManager AuthenticationManager
         {
             get
             {
-                return HttpContext.GetOwinContext().Authentication;
+                return _authManager ?? HttpContext.GetOwinContext().Authentication;
+            }
+            set
+            {
+                _authManager = value;
             }
         }
 
@@ -371,6 +363,18 @@ namespace TrackerWeb.Controllers
                 return user.PhoneNumber != null;
             }
             return false;
+        }
+
+        private static string GetStatusMessage(ManageMessageId? message)
+        {
+            return message == ManageMessageId.ChangePasswordSuccess ? "Your password has been changed."
+                : message == ManageMessageId.SetPasswordSuccess ? "Your password has been set."
+                : message == ManageMessageId.SetTwoFactorSuccess ? "Your two-factor authentication provider has been set."
+                : message == ManageMessageId.Error ? "An error has occurred."
+                : message == ManageMessageId.AddPhoneSuccess ? "Your phone number was added."
+                : message == ManageMessageId.RemovePhoneSuccess ? "Your phone number was removed."
+                : message == ManageMessageId.RemoveLoginSuccess ? "The external login was removed."
+                : "";
         }
 
         public enum ManageMessageId

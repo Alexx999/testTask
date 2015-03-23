@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using TrackerWeb.Controllers;
 using TrackerWeb.Models;
+using TrackerWeb.Results;
 using TrackerWeb.Tests.Mocks;
 
 namespace TrackerWeb.Tests
@@ -130,6 +131,328 @@ namespace TrackerWeb.Tests
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
             Assert.AreEqual(redirectResult.RouteValues["action"], "VerifyPhoneNumber");
+        }
+
+        [TestMethod]
+        public async Task TestEnableTwoFactorAuthentication()
+        {
+            var result = await _controller.EnableTwoFactorAuthentication();
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
+            Assert.AreEqual(redirectResult.RouteValues["controller"], "Manage");
+        }
+
+        [TestMethod]
+        public async Task TestDisableTwoFactorAuthentication()
+        {
+            var result = await _controller.DisableTwoFactorAuthentication();
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
+            Assert.AreEqual(redirectResult.RouteValues["controller"], "Manage");
+        }
+
+        [TestMethod]
+        public void TestVerifyPhoneNumberViewError()
+        {
+            var result = _controller.VerifyPhoneNumber((string)null);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "Error");
+        }
+
+        [TestMethod]
+        public void TestVerifyPhoneNumberView()
+        {
+            var result = _controller.VerifyPhoneNumber("0000000");
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestVerifyPhoneNumberBadModelState()
+        {
+            var model = new VerifyPhoneNumberViewModel();
+
+            _controller.ModelState.AddModelError("Error", "Some Error");
+            var result = await _controller.VerifyPhoneNumber(model);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestVerifyPhoneNumberFailure()
+        {
+            var model = new VerifyPhoneNumberViewModel();
+
+            var result = await _controller.VerifyPhoneNumber(model);
+            Assert.IsFalse(_controller.ModelState.IsValid);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestVerifyPhoneNumberSuccess()
+        {
+            var userManager = new Mock<ApplicationUserManager>(UserStore) { CallBase = true };
+            userManager.Setup(
+                si => si.ChangePhoneNumberAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new TestIdentityResult(true));
+            var signInManeger = new ApplicationSignInManager(userManager.Object, GetAuthenticationManager(false, true));
+            var controller = new ManageController(userManager.Object, signInManeger);
+            SetupControllerForTests(controller, true);
+
+            var model = new VerifyPhoneNumberViewModel();
+
+            var result = await controller.VerifyPhoneNumber(model);
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
+            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.AddPhoneSuccess);
+        }
+
+        [TestMethod]
+        public async Task TestRemovePhoneNumberSuccess()
+        {
+            var result = await _controller.RemovePhoneNumber();
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
+            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.RemovePhoneSuccess);
+        }
+
+        [TestMethod]
+        public async Task TestRemovePhoneNumberFailure()
+        {
+            var userManager = new Mock<ApplicationUserManager>(UserStore) { CallBase = true };
+            userManager.Setup(
+                si => si.SetPhoneNumberAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new TestIdentityResult(false));
+            var signInManeger = new ApplicationSignInManager(userManager.Object, GetAuthenticationManager(false, true));
+            var controller = new ManageController(userManager.Object, signInManeger);
+            SetupControllerForTests(controller, true);
+
+            var result = await controller.RemovePhoneNumber();
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
+            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.Error);
+        }
+
+        [TestMethod]
+        public void TestChangePasswordView()
+        {
+            var result = _controller.ChangePassword();
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestChangePasswordBadModelState()
+        {
+            var model = new ChangePasswordViewModel();
+
+            _controller.ModelState.AddModelError("Error", "Some Error");
+            var result = await _controller.ChangePassword(model);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestChangePasswordSuccess()
+        {
+            const string pass = "Q`1werty";
+            var model = new ChangePasswordViewModel()
+            {
+                OldPassword = TestConfig.TestUserPassword,
+                NewPassword = pass,
+                ConfirmPassword = pass
+            };
+
+            var result = await _controller.ChangePassword(model);
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
+            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.ChangePasswordSuccess);
+        }
+
+        [TestMethod]
+        public async Task TestChangePasswordFailure()
+        {
+            const string pass = "Q`1werty";
+            var model = new ChangePasswordViewModel()
+            {
+                OldPassword = pass,
+                NewPassword = pass,
+                ConfirmPassword = pass
+            };
+
+            var result = await _controller.ChangePassword(model);
+            Assert.IsFalse(_controller.ModelState.IsValid);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public void TestSetPasswordView()
+        {
+            var result = _controller.SetPassword();
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestSetPasswordBadModelState()
+        {
+            var model = new SetPasswordViewModel();
+
+            _controller.ModelState.AddModelError("Error", "Some Error");
+            var result = await _controller.SetPassword(model);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestSetPasswordFailure()
+        {
+            const string pass = "Q`1werty";
+            var model = new SetPasswordViewModel()
+            {
+                NewPassword = pass,
+                ConfirmPassword = pass
+            };
+
+            var result = await _controller.SetPassword(model);
+            Assert.IsFalse(_controller.ModelState.IsValid);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestSetPasswordSuccess()
+        {
+            var userManager = new Mock<ApplicationUserManager>(UserStore) { CallBase = true };
+            userManager.Setup(
+                si => si.AddPasswordAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new TestIdentityResult(true));
+            var signInManeger = new ApplicationSignInManager(userManager.Object, GetAuthenticationManager(false, true));
+            var controller = new ManageController(userManager.Object, signInManeger);
+            SetupControllerForTests(controller, true);
+
+            var model = new SetPasswordViewModel();
+
+            var result = await controller.SetPassword(model);
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
+            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.SetPasswordSuccess);
+        }
+
+        [TestMethod]
+        public async Task TestManageLoginsViewError()
+        {
+            var controller = new ManageController(UserManager, SignInManager);
+            SetupControllerForTests(controller);
+
+            var result = await controller.ManageLogins(null);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "Error");
+        }
+
+        [TestMethod]
+        public async Task TestManageLoginsViewMessages()
+        {
+            await _controller.ManageLogins(null);
+            Assert.AreEqual(_controller.ViewBag.StatusMessage, "");
+            var values = Enum.GetValues(typeof(ManageController.ManageMessageId)).Cast<ManageController.ManageMessageId>();
+            foreach (var value in values)
+            {
+                await _controller.Index(value);
+                Assert.AreNotEqual(_controller.ViewBag.StatusMessage, "", string.Format("Message for enum value {0} must not be empty", value));
+            }
+        }
+
+        [TestMethod]
+        public async Task TestManageLoginsViewSuccess()
+        {
+            var user = await UserManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            await UserManager.AddLoginAsync(user.Id, new UserLoginInfo("Prov1", "key1"));
+
+            var result = await _controller.ManageLogins(null);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public async Task TestManageLoginsViewDefault()
+        {
+            var controller = new ManageController();
+            SetupControllerForTests(controller, true);
+
+            var result = await controller.ManageLogins(null);
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(viewResult.ViewName, "");
+        }
+
+        [TestMethod]
+        public void TestLinkLoginView()
+        {
+            var result = _controller.LinkLogin("");
+            Assert.IsInstanceOfType(result, typeof(ChallengeResult));
+        }
+
+        [TestMethod]
+        public async Task TestLinkLoginCallbackFailure()
+        {
+            var result = await _controller.LinkLoginCallback();
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "ManageLogins");
+            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.Error);
+        }
+
+        [TestMethod]
+        public async Task TestLinkLoginCallbackSuccess()
+        {
+            var signInManager = new ApplicationSignInManager(UserManager, GetAuthenticationManager(false, true));
+            var controller = new ManageController(UserManager, signInManager);
+            SetupControllerForTests(controller, true);
+
+            var result = await controller.LinkLoginCallback();
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "ManageLogins");
+        }
+
+        [TestMethod]
+        public async Task TestLinkLoginCallbackAddLoginFailure()
+        {
+            var userManager = new Mock<ApplicationUserManager>(UserStore) { CallBase = true };
+            userManager.Setup(
+                si => si.AddLoginAsync(It.IsAny<string>(), It.IsAny<UserLoginInfo>()))
+                .ReturnsAsync(new TestIdentityResult(false));
+            var signInManeger = new ApplicationSignInManager(userManager.Object, GetAuthenticationManager(false, true));
+            var controller = new ManageController(userManager.Object, signInManeger);
+            SetupControllerForTests(controller, true);
+
+            var result = await controller.LinkLoginCallback();
+            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
+            var redirectResult = (RedirectToRouteResult)result;
+            Assert.AreEqual(redirectResult.RouteValues["action"], "ManageLogins");
+            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.Error);
         }
 
         [TestCleanup]

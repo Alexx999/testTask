@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Web;
@@ -11,6 +12,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Moq;
 using TrackerWeb.Models;
+using TrackerWeb.Results;
 using TrackerWeb.Tests.Mocks;
 
 namespace TrackerWeb.Tests
@@ -47,13 +49,24 @@ namespace TrackerWeb.Tests
 
         protected Mock<IAuthenticationManager> GetAuthenticationManagerMock(bool hasAuthenticatedUser, bool hasExternalLoginInfo)
         {
+            var authDesctiptions = new List<AuthenticationDescription>()
+            {
+                new AuthenticationDescription {Caption = "TestAuth"},
+                new AuthenticationDescription()
+            };
+
             var mockAuthenticationManager = new Mock<IAuthenticationManager>();
             mockAuthenticationManager.Setup(am => am.SignOut()).Verifiable();
             mockAuthenticationManager.Setup(am => am.SignIn(It.IsAny<ClaimsIdentity[]>())).Verifiable();
+            mockAuthenticationManager.Setup(am => am.GetAuthenticationTypes()).Returns(authDesctiptions);
+            mockAuthenticationManager.Setup(am => am.GetAuthenticationTypes(It.IsAny<Func<AuthenticationDescription, bool>>()))
+                .Returns((Func<AuthenticationDescription, bool> pred) => authDesctiptions.Where(pred));
 
             var user = UserManager.FindByEmailAsync(TestConfig.TestUserEmail).Result;
             Identity = CreateClaimsIdentity(user.Id, user.Email, user.Name);
-            var authenticateResult = new AuthenticateResult(Identity, new AuthenticationProperties(), new AuthenticationDescription());
+            var authenticateResult = new AuthenticateResult(Identity,
+                new AuthenticationProperties(new Dictionary<string, string> {{ChallengeResult.XsrfKey, user.Id}}),
+                new AuthenticationDescription());
             if (hasAuthenticatedUser)
             {
                 mockAuthenticationManager.Setup(am => am.AuthenticateAsync("TwoFactorCookie")).ReturnsAsync(authenticateResult);

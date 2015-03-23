@@ -15,7 +15,7 @@ namespace TrackerWeb.Results
     public class ChallengeResult : HttpUnauthorizedResult
     {
         // Used for XSRF protection when adding external logins
-        private const string XsrfKey = "XsrfId";
+        public const string XsrfKey = "XsrfId";
 
         public ChallengeResult(string provider, string redirectUri)
             : this(provider, redirectUri, null)
