@@ -6,7 +6,7 @@
     Sammy(function () {
         this.get('#home', function () {
             // Make a call to the protected Web API by passing in a Bearer Authorization Header
-            $.ajax({
+            /*$.ajax({
                 method: 'get',
                 url: app.dataModel.userInfoUrl,
                 contentType: "application/json; charset=utf-8",
@@ -16,7 +16,7 @@
                 success: function (data) {
                     self.myName('Your Name is : ' + data.name);
                 }
-            });
+            });*/
         });
         this.get('/', function () { this.app.runRoute('get', '#home') });
     });
