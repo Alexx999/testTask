@@ -37,7 +37,7 @@ namespace TrackerWeb.Controllers.API
 
 
         [AllowAnonymous]
-        public async Task<IHttpActionResult> Register(RegisterModel model)
+        public async Task<IHttpActionResult> PostAccount(RegisterModel model)
         {
             if (!ModelState.IsValid)
             {

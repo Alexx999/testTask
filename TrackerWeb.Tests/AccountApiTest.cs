@@ -37,7 +37,7 @@ namespace TrackerWeb.Tests
         public async Task TestRegister()
         {
             var model = new RegisterModel {Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword, Name = "Test User"};
-            var result = await _controller.Register(model);
+            var result = await _controller.PostAccount(model);
             Assert.IsInstanceOfType(result, typeof(OkResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
             Assert.IsTrue(requestResult.IsSuccessStatusCode);
@@ -56,9 +56,9 @@ namespace TrackerWeb.Tests
         public async Task TestRegisterExisting()
         {
             var model = new RegisterModel { Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword, Name = "Test User" };
-            await _controller.Register(model);
+            await _controller.PostAccount(model);
             Assert.IsNotNull(_userManager.FindByEmail(TestConfig.TestUserEmail));
-            var result = await _controller.Register(model);
+            var result = await _controller.PostAccount(model);
             Assert.IsInstanceOfType(result, typeof(InvalidModelStateResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
             Assert.IsFalse(requestResult.IsSuccessStatusCode);
@@ -70,7 +70,7 @@ namespace TrackerWeb.Tests
             const string badEmail = "badEmail_bademail.com";
             _controller.ModelState.AddModelError("Email", "Wrong Email");
             var model = new RegisterModel { Email = badEmail, Password = TestConfig.TestUserPassword, Name = "Test User" };
-            var result = await _controller.Register(model);
+            var result = await _controller.PostAccount(model);
             Assert.IsInstanceOfType(result, typeof(InvalidModelStateResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
             Assert.IsFalse(requestResult.IsSuccessStatusCode);

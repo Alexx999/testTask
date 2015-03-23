@@ -17,11 +17,16 @@ namespace TrackerWeb.Tests
     {
         private ApplicationUserManager _userManager = ApplicationUserManager.Create(new UserStore<ApplicationUser>(ApplicationDbContext.Create()));
 
+        [TestInitialize]
+        public void Init()
+        {
+            EnsureUserDontExist().Wait();
+        }
+
         [TestMethod]
         public async Task RegisterUser()
         {
-            await EnsureUserDontExist();
-            var request = WebRequest.CreateHttp(TestConfig.AppUrl + "api/Account/Register");
+            var request = WebRequest.CreateHttp(TestConfig.AppUrl + "api/Account");
             request.Method = "POST";
 
             var model = new RegisterModel
@@ -36,17 +41,20 @@ namespace TrackerWeb.Tests
             request.ContentType = "application/json; charset=utf-8";
             request.ContentLength = byteArray.Length;
 
-            using (var dataStream = request.GetRequestStream())
+            using (var dataStream = await request.GetRequestStreamAsync())
             {
                 dataStream.Write(byteArray, 0, byteArray.Length);
             }
 
 
-            using (var response = (HttpWebResponse)request.GetResponse())
+            using (var response = (HttpWebResponse)await request.GetResponseAsync())
             {
                 Assert.AreEqual(response.StatusCode, HttpStatusCode.OK);
                 Assert.AreEqual(response.ContentLength, 0);
             }
+
+            var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            Assert.IsNotNull(user);
         }
 
         [TestCleanup]
