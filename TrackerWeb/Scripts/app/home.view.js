@@ -31,7 +31,24 @@ function RunHomeView(viewModel, dataModel) {
     function editorAction(method, url, data, successCallback, errorCallback) {
         ajaxActions[data.action](dataToModel(data.data), function () {
             successCallback({ row: null });
-        }, errorCallback);
+        }, function (dataObject) {
+            if (dataObject != null) {
+                var dtObject = { error: dataObject.message, row: data.data, fieldErrors: [] };
+                var modelState = dataObject.modelState;
+                _.each(_.keys(modelState), function(key) {
+                    var parts = key.split(".");
+                    if (parts.length === 2 && parts[0] === "expense") {
+                        dtObject.fieldErrors.push({ name: parts[1], status: modelState[key][0] });
+                        if (parts[1] === "date") {
+                            dtObject.fieldErrors.push({ name: "time", status: modelState[key][0] });
+                        }
+                    }
+                });
+                successCallback(dtObject);
+            } else {
+                errorCallback();
+            }
+        });
     }
 
     var data = _.map(viewModel.expenses(), modelToData);

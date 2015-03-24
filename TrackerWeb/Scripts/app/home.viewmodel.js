@@ -1,46 +1,55 @@
 ﻿function HomeViewModel(app, dataModel) {
-    var self = this;
-
-    self.expenses = ko.betterObservableArray();
-    self.addExpense = function(data, success, error) {
+    function simpleAjax(url, method, data, success, error) {
         $.ajax({
-            method: 'post',
-            url: app.dataModel.userExpensesUrl,
+            method: method,
+            url: url,
             contentType: "application/json; charset=utf-8",
-            data: JSON.stringify(data),
+            data: data,
             headers: {
                 'Authorization': 'Bearer ' + app.dataModel.getAccessToken()
             },
-            success: function (data) {
-                self.expenses.push(data);
+            success: function(data) {
                 if (success != null) {
                     success(data);
                 }
             },
-            error: function () {
+            error: function(jqXHR, textStatus, errorThrown) {
                 if (error != null) {
-                    error();
+                    var object = undefined;
+                    if (jqXHR.status === 400) {
+                        try {
+                            object = JSON.parse(jqXHR.responseText);
+                        } catch (e) {
+                        }
+                    }
+
+                    error(object);
                 }
             }
         });
+
+    }
+
+    var self = this;
+
+    self.expenses = ko.betterObservableArray();
+    self.addExpense = function (data, success, error) {
+        simpleAjax(app.dataModel.userExpensesUrl, "POST", JSON.stringify(data),
+            function(data) {
+                self.expenses.push(data);
+                if (success != null) {
+                    success(data);
+                }
+            }, error);
     }
 
     Sammy(function () {
         this.get('#home', function () {
             RunHomeView(self, dataModel);
-            // Make a call to the protected Web API by passing in a Bearer Authorization Header
-            $.ajax({
-                method: 'get',
-                url: app.dataModel.userExpensesUrl,
-                contentType: "application/json; charset=utf-8",
-                headers: {
-                    'Authorization': 'Bearer ' + app.dataModel.getAccessToken()
-                },
-                success: function (data) {
+            simpleAjax(app.dataModel.userExpensesUrl, "GET", undefined,
+                function(data) {
                     self.expenses.setValue(data);
-                }
-            });
-            //self.addExpense(new Date().toISOString(), "My expense", 0, "My Comment");
+                });
         });
         this.get('/', function () { this.app.runRoute('get', '#home') });
     });
