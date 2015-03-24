@@ -15,15 +15,7 @@
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 if (error != null) {
-                    var object = undefined;
-                    if (jqXHR.status === 400) {
-                        try {
-                            object = JSON.parse(jqXHR.responseText);
-                        } catch (e) {
-                        }
-                    }
-
-                    error(object);
+                    error(jqXHR.responseJSON);
                 }
             }
         });
@@ -37,6 +29,31 @@
         simpleAjax(app.dataModel.userExpensesUrl, "POST", JSON.stringify(data),
             function(data) {
                 self.expenses.push(data);
+                if (success != null) {
+                    success(data);
+                }
+            }, error);
+    }
+
+    self.deleteExpense = function (id, success, error) {
+        simpleAjax(app.dataModel.userExpensesUrl + "/" + id, "DELETE", undefined,
+            function (data) {
+                self.expenses.remove(function(item) {
+                    return item.id === id;
+                });
+                if (success != null) {
+                    success(data);
+                }
+            }, error);
+    }
+
+    self.updateExpense = function (id, data, success, error) {
+        simpleAjax(app.dataModel.userExpensesUrl + "/" + id, "PUT", JSON.stringify(data),
+            function (data) {
+                var target = _.first(self.expenses(), function(item) {
+                    return item.id === id;
+                });
+                _.extendOwn(target, data);
                 if (success != null) {
                     success(data);
                 }

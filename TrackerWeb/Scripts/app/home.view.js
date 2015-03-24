@@ -14,23 +14,32 @@ function RunHomeView(viewModel, dataModel) {
 
     function dataToModel(data) {
         var model = _.extendOwn({}, data);
+        delete model.time;
         model.date = data.date + "T" + data.time + "Z";
         return model;
     }
 
-    function edit(data, callback) {
-        
+    function create(data, successCallback, errorCallback) {
+        var vm = dataToModel(data.data);
+        delete vm.expenseId;
+        viewModel.addExpense(vm, function() {
+            successCallback(null);
+        }, errorCallback);
     }
 
-    function remove(data, callback) {
-        
+    function edit(data, successCallback, errorCallback) {
+        viewModel.updateExpense(data.id, dataToModel(data.data), successCallback, errorCallback);
     }
 
-    var ajaxActions = { create: viewModel.addExpense, edit: edit, remove: remove }
+    function remove(data, successCallback, errorCallback) {
+        viewModel.deleteExpense(data.id, successCallback, errorCallback);
+    }
+
+    var ajaxActions = { create: create, edit: edit, remove: remove }
 
     function editorAction(method, url, data, successCallback, errorCallback) {
-        ajaxActions[data.action](dataToModel(data.data), function () {
-            successCallback({ row: null });
+        ajaxActions[data.action](data, function (row) {
+            successCallback({ row: row });
         }, function (dataObject) {
             if (dataObject != null) {
                 var dtObject = { error: dataObject.message, row: data.data, fieldErrors: [] };
@@ -55,8 +64,12 @@ function RunHomeView(viewModel, dataModel) {
 
     var editor = new $.fn.dataTable.Editor({
         table: "#expences",
+        idSrc: "expenseId",
         fields: [
             {
+                name: "expenseId",
+                type: "hidden"
+            },{
                 label: "Date:",
                 name: "date",
                 type: "date",
@@ -96,6 +109,7 @@ function RunHomeView(viewModel, dataModel) {
         data: data,
         deferRender: true,
         lengthChange: false,
+        pageLength: 25,
         columns: [
             { data: null, defaultContent: "", orderable: false },
             { data: "expenseId" },
