@@ -91,6 +91,8 @@ DataTable.Editor.display.bootstrap = $.extend( true, {}, DataTable.Editor.models
 		return self;
 	},
 
+	"_datePickersExtended": false,
+
 	"open": function ( dte, append, callback ) {
 		if ( self._shown ) {
 			if ( callback ) {
@@ -122,7 +124,22 @@ DataTable.Editor.display.bootstrap = $.extend( true, {}, DataTable.Editor.models
 			}
 		);
 
-		$('input[type=text], select', self._dom.content).addClass( 'form-control' );
+		$('input[type=text], select', self._dom.content).addClass('form-control');
+
+		if (this._datePickersExtended) return;
+		this._datePickersExtended = true;
+		var pickers = $('.date-picker', self._dom.content);
+		$.each(pickers, function (index, picker) {
+			var div = $("<div></div>").addClass("input-group").css({ offset: 0 });
+			$(picker).parent().prepend(div);
+			div.append(picker);
+		});
+		pickers.after((function () {
+			return $("<label></label>")
+				.attr({ "for": this.id, "class": "input-group-addon btn" })
+				.append($("<span></span>")
+					.addClass("glyphicon glyphicon-calendar"));
+		}));
 	},
 
 	"close": function ( dte, callback ) {

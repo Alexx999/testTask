@@ -5,31 +5,19 @@
             conf._input = $('<input />').attr($.extend({
                 type: 'text',
                 id: Editor.safeId(conf.id),
-                'class': 'jqueryui'
+                'class': 'date-picker form-control'
             }, conf.attr || {}));
 
             if (! conf.dateFormat) {
                 conf.dateFormat = $.datepicker.RFC_2822;
             }
 
-            if (conf.dateImage === undefined) {
-                conf.dateImage = "../../images/calender.png";
-            }
-
             // Allow the element to be attached to the DOM
             setTimeout(function() {
                 $(conf._input).datepicker($.extend({
-                    showOn: "both",
-                    dateFormat: conf.dateFormat,
-                    buttonImage: conf.dateImage,
-                    buttonImageOnly: true
+                    dateFormat: conf.dateFormat
                 }, conf.opts));
-                $('#ui-datepicker-div').css('display', 'none');
             }, 10);
-
-            conf._input.on("focusout", function () {
-                $(conf._input).datepicker("hide");
-            });
 
             return conf._input[0];
         },
