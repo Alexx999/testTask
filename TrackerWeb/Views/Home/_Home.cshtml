@@ -22,19 +22,44 @@
     }
 
     .ui-datepicker { z-index: 1050 !important;}
+
+    div[class=DTE_Inline_Field]  input {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    div.DTE_Inline {
+        display: table;
+    }
+
+    div.DTE_Inline_Field {
+        display: table-cell;
+    }
+
+    div.DTE_Inline_Field div.DTE_Field::after {
+        display: none;
+    }
+
+    div.DTE_Inline_Buttons.input-group-addon {
+        padding: 0;
+    }
+
+    div.DTE_Inline_Buttons .btn {
+        line-height: 1.3;
+    }
 </style>
 
 <div class="row spacer">
     <table id="expences" class="table table-striped table-bordered" cellspacing="0" width="100%">
         <thead>
             <tr>
-                <th></th>
+                <th style="width: 1%"></th>
                 <th>Id</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Description</th>
-                <th>Amount</th>
-                <th>Comment</th>
+                <th class="col-xs-2">Date</th>
+                <th class="col-xs-2">Time</th>
+                <th class="col-xs-3">Description</th>
+                <th class="col-xs-2">Amount</th>
+                <th class="col-xs-3">Comment</th>
             </tr>
         </thead>
 

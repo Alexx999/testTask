@@ -101,8 +101,9 @@ function RunHomeView(viewModel, dataModel) {
 
     $("#expences").on("click", "tbody td:not(:first-child)", function (e) {
         editor.inline(this, {
-            buttons: { label: 'Submit', fn: function () { this.submit(); } }
+            buttons: { label: '&gt;', fn: function () { this.submit(); } }
         });
+        $("div.DTE_Inline_Buttons").addClass("input-group-addon");
     });
 
     var table = $("#expences").DataTable({

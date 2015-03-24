@@ -20,7 +20,7 @@
 input,
 select,
 textarea {
-    max-width: 350px;
+    max-width: none;
 }
 
 /* Set padding to display errors that occur during databinding */
