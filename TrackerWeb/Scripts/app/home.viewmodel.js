@@ -2,8 +2,7 @@
     var self = this;
 
     self.expenses = ko.betterObservableArray();
-    self.addExpense = function(date, description, amount, comment) {
-        var data = { date: date, description: description, amount: amount, comment: comment };
+    self.addExpense = function(data, success, error) {
         $.ajax({
             method: 'post',
             url: app.dataModel.userExpensesUrl,
@@ -14,6 +13,14 @@
             },
             success: function (data) {
                 self.expenses.push(data);
+                if (success != null) {
+                    success(data);
+                }
+            },
+            error: function () {
+                if (error != null) {
+                    error();
+                }
             }
         });
     }

@@ -1,40 +1,21 @@
 ﻿"use strict";
 function RunHomeView(viewModel, dataModel) {
     var self = this;
+    var dateFormat = "YYYY-MM-DD";
+    var timeFormat = "HH:mm";
 
-    //TODO: This is dead slow code for testing purpose only
-    function subscribeArrayChanged (array, addCallback, deleteCallback) {
-        var previousValue = undefined;
-        array.subscribe(function (beforeChangeValue) {
-            previousValue = beforeChangeValue.slice(0);
-        }, undefined, "beforeChange");
-        array.subscribe(function (latestValue) {
-            var editScript = ko.utils.compareArrays(previousValue, latestValue);
-            for (var i = 0, j = editScript.length; i < j; i++) {
-                switch (editScript[i].status) {
-                    case "retained":
-                        break;
-                    case "deleted":
-                        if (deleteCallback)
-                            deleteCallback(editScript[i].value);
-                        break;
-                    case "added":
-                        if (addCallback)
-                            addCallback(editScript[i].value);
-                        break;
-                }
-            }
-            previousValue = undefined;
-        });
-    };
-
-    function dataToModel(data) {
-        data.date = data.date.toISOString();
+    function modelToData(model) {
+        var data = _.extendOwn({}, model);
+        var m = moment.utc(data.date);
+        data.date = m.format(dateFormat);
+        data.time = m.format(timeFormat);
         return data;
     }
 
-    function create(data, callback) {
-        
+    function dataToModel(data) {
+        var model = _.extendOwn({}, data);
+        model.date = data.date + "T" + data.time + "Z";
+        return model;
     }
 
     function edit(data, callback) {
@@ -45,15 +26,15 @@ function RunHomeView(viewModel, dataModel) {
         
     }
 
-    var ajaxActions = { create: create, edit: edit, remove: remove }
+    var ajaxActions = { create: viewModel.addExpense, edit: edit, remove: remove }
 
     function editorAction(method, url, data, successCallback, errorCallback) {
         ajaxActions[data.action](dataToModel(data.data), function () {
             successCallback({ row: null });
-        });
+        }, errorCallback);
     }
 
-    var data = viewModel.expenses();
+    var data = _.map(viewModel.expenses(), modelToData);
 
     var editor = new $.fn.dataTable.Editor({
         table: "#expences",
@@ -62,10 +43,13 @@ function RunHomeView(viewModel, dataModel) {
                 label: "Date:",
                 name: "date",
                 type: "date",
-                dateFormat: $.datepicker.ISO_8601,
+                dateFormat: $.datepicker.ISO_8601
+            },{
+                label: "Time:",
+                name: "time",
+                type: "time",
                 opts: {
-                    separator: 'T',
-                    timeFormat: 'hh:mm:ssz',
+                    timeFormat: timeFormat,
                     showSecond: false,
                     showTimezone: false,
                     addSliderAccess: true,
@@ -99,33 +83,17 @@ function RunHomeView(viewModel, dataModel) {
             { data: null, defaultContent: "", orderable: false },
             { data: "expenseId" },
             { data: "date" },
-            { data: "date" },
+            { data: "time" },
             { data: "description" },
             { data: "amount" },
             { data: "comment" }
         ],
-        order: [2, "asc"],
+        order: [2, "desc"],
         columnDefs: [
             {
                 targets: [1],
                 visible: false,
                 searchable: false
-            }, {
-                targets: [2],
-                render: function(data, type, full) {
-                    if (data) {
-                        return new Date(data).toLocaleDateString();
-                    }
-                    return "";
-                }
-            }, {
-                targets: [3],
-                render: function(data, type, full) {
-                    if (data) {
-                        return new Date(data).toLocaleTimeString();
-                    }
-                    return "";
-                }
             }
         ]
     });
@@ -143,7 +111,7 @@ function RunHomeView(viewModel, dataModel) {
     $(tableTools.fnContainer()).appendTo("#expences_wrapper .col-sm-6:eq(0)");
 
     viewModel.expenses.subscribe(function (addedItem) {
-        table.row.add(addedItem).draw();
+        table.row.add(modelToData(addedItem)).draw();
     }, null, "add");
 
     viewModel.expenses.subscribe(function (removedItem) {

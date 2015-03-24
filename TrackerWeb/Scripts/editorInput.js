@@ -1,5 +1,54 @@
 ﻿(function (window, document, undefined) {
     var Editor = $.fn.dataTable.Editor;
+    $.fn.dataTable.Editor.fieldTypes.time = $.extend(true, {}, $.fn.dataTable.Editor.models.fieldType, {
+        "create": function(conf) {
+            conf._input = $('<input />').attr($.extend({
+                type: 'text',
+                id: Editor.safeId(conf.id),
+                'class': 'date-picker form-control'
+            }, conf.attr || {}));
+
+            if (! conf.dateFormat) {
+                conf.dateFormat = $.datepicker.RFC_2822;
+            }
+
+            // Allow the element to be attached to the DOM
+            setTimeout(function() {
+                $(conf._input).timepicker($.extend({
+                    dateFormat: conf.dateFormat
+                }, conf.opts));
+            }, 10);
+
+            return conf._input[0];
+        },
+
+        "get": function (conf) {
+            return $(conf._input).val();
+        },
+
+        "set": function(conf, val) {
+            $(conf._input).val(val);
+        },
+
+        "enable": function(conf) {
+            $.datepicker ?
+                conf._input.timepicker("enable") :
+                $(conf._input).prop('disable', false);
+        },
+
+        "disable": function(conf) {
+            $.datepicker ?
+                conf._input.timepicker("disable") :
+                $(conf._input).prop('disable', true);
+        },
+
+        owns: function(conf, node) {
+            return $(node).parents('div.ui-datepicker').length || $(node).parents('div.ui-datepicker-header').length ?
+                true :
+                false;
+        }
+    });
+
     $.fn.dataTable.Editor.fieldTypes.date = $.extend(true, {}, $.fn.dataTable.Editor.models.fieldType, {
         "create": function(conf) {
             conf._input = $('<input />').attr($.extend({
@@ -14,7 +63,7 @@
 
             // Allow the element to be attached to the DOM
             setTimeout(function() {
-                $(conf._input).datetimepicker($.extend({
+                $(conf._input).datepicker($.extend({
                     dateFormat: conf.dateFormat
                 }, conf.opts));
             }, 10);
@@ -23,7 +72,7 @@
         },
 
         "get": function(conf) {
-            return  conf._input.datepicker("getDate");
+            return $(conf._input).val();
         },
 
         "set": function(conf, val) {

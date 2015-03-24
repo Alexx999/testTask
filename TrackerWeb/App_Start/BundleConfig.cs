@@ -41,6 +41,7 @@ namespace TrackerWeb
                 "~/Scripts/underscore.js"));
 
             bundles.Add(new ScriptBundle("~/bundles/app").Include(
+                "~/Scripts/moment.js",
                 "~/Scripts/sammy-{version}.js",
                 "~/Scripts/app/common.js",
                 "~/Scripts/app/app.datamodel.js",
