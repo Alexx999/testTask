@@ -20,6 +20,10 @@ namespace TrackerWeb
             bundles.Add(new ScriptBundle("~/bundles/jqueryui").Include(
                 "~/Scripts/jquery-ui.js"));
 
+            bundles.Add(new ScriptBundle("~/bundles/datetime").Include(
+                "~/Scripts/jquery-ui-sliderAccess.js",
+                "~/Scripts/jquery-ui-timepicker-addon.js"));
+
             bundles.Add(new ScriptBundle("~/bundles/datatables").Include(
                 "~/Scripts/jquery.dataTables.js",
                 "~/Scripts/dataTables.tableTools.js",
@@ -61,6 +65,7 @@ namespace TrackerWeb
                  "~/Content/dataTables.tableTools.css",
                  "~/Content/dataTables.bootstrap.css",
                  "~/Content/editor.bootstrap.css",
+                 "~/Content/jquery-ui-timepicker-addon.css",
                  "~/Content/Site.css"));
         }
     }

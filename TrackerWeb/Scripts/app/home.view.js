@@ -28,16 +28,9 @@ function RunHomeView(viewModel, dataModel) {
         });
     };
 
-    function modelToData(model) {
-        return model;
-    }
-
     function dataToModel(data) {
-        var result = _.extendOwn({}, data);
-        var date = new Date(Date.parse(model.date));
-        result.date = date.toLocaleDateString();
-        result.time = date.toLocaleTimeString();
-        return result;
+        data.date = data.date.toISOString();
+        return data;
     }
 
     function create(data, callback) {
@@ -60,7 +53,7 @@ function RunHomeView(viewModel, dataModel) {
         });
     }
 
-    var data = _.map(viewModel.expenses(), modelToData);
+    var data = viewModel.expenses();
 
     var editor = new $.fn.dataTable.Editor({
         table: "#expences",
@@ -68,7 +61,16 @@ function RunHomeView(viewModel, dataModel) {
             {
                 label: "Date:",
                 name: "date",
-                type: "date"
+                type: "date",
+                dateFormat: $.datepicker.ISO_8601,
+                opts: {
+                    separator: 'T',
+                    timeFormat: 'hh:mm:ssz',
+                    showSecond: false,
+                    showTimezone: false,
+                    addSliderAccess: true,
+                    sliderAccessArgs: { touchonly: false }
+                }
             }, {
                 label: "Description:",
                 name: "description"
@@ -84,7 +86,9 @@ function RunHomeView(viewModel, dataModel) {
     });
 
     $("#expences").on("click", "tbody td:not(:first-child)", function (e) {
-        editor.inline(this);
+        editor.inline(this, {
+            buttons: { label: 'Submit', fn: function () { this.submit(); } }
+        });
     });
 
     var table = $("#expences").DataTable({
@@ -139,7 +143,7 @@ function RunHomeView(viewModel, dataModel) {
     $(tableTools.fnContainer()).appendTo("#expences_wrapper .col-sm-6:eq(0)");
 
     viewModel.expenses.subscribe(function (addedItem) {
-        table.row.add(modelToData(addedItem)).draw();
+        table.row.add(addedItem).draw();
     }, null, "add");
 
     viewModel.expenses.subscribe(function (removedItem) {

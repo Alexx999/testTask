@@ -14,7 +14,7 @@
 
             // Allow the element to be attached to the DOM
             setTimeout(function() {
-                $(conf._input).datepicker($.extend({
+                $(conf._input).datetimepicker($.extend({
                     dateFormat: conf.dateFormat
                 }, conf.opts));
             }, 10);
@@ -22,7 +22,9 @@
             return conf._input[0];
         },
 
-        // use default get method as will work for both
+        "get": function(conf) {
+            return  conf._input.datepicker("getDate");
+        },
 
         "set": function(conf, val) {
             $.datepicker ?
