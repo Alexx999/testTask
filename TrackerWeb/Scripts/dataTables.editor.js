@@ -4017,22 +4017,6 @@ Editor.prototype._postopen = function ( type )
 			e.preventDefault();
 		} );
 
-	// Focus capture - when the Editor form is shown we capture the browser's
-	// focus action. Without doing this is would result in the user being able
-	// to control items under the Editor display - triggering actions that
-	// shouldn't be possible while the editing is shown.
-	if ( type === 'main' || type === 'bubble' ) {
-		$('html').on( 'focus.editor-focus', 'body', function () {
-			if ( $(document.activeElement).parents('.DTE').length === 0 &&
-			     $(document.activeElement).parents('.DTED').length === 0
-			) {
-				if ( that.s.setFocus ) {
-					that.s.setFocus.focus();
-				}
-			}
-		} );
-	}
-
 	this._event( 'open', [type] );
 
 	return true;
