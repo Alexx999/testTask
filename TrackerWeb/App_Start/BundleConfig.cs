@@ -17,13 +17,21 @@ namespace TrackerWeb
                 "~/Scripts/jquery.unobtrusive*",
                 "~/Scripts/jquery.validate*"));
 
+            bundles.Add(new ScriptBundle("~/bundles/jqueryui").Include(
+                "~/Scripts/jquery-ui.js"));
+
             bundles.Add(new ScriptBundle("~/bundles/datatables").Include(
                 "~/Scripts/jquery.dataTables.js",
-                "~/Scripts/dataTables.bootstrap.js"));
+                "~/Scripts/dataTables.tableTools.js",
+                "~/Scripts/dataTables.editor.js",
+                "~/Scripts/dataTables.bootstrap.js",
+                "~/Scripts/editorInput.js",
+                "~/Scripts/editor.bootstrap.js"));
 
             bundles.Add(new ScriptBundle("~/bundles/knockout").Include(
                 "~/Scripts/knockout-{version}.js",
-                "~/Scripts/knockout.validation.js"));
+                "~/Scripts/knockout.validation.js",
+                "~/Scripts/betterObservableArray.js"));
 
             bundles.Add(new ScriptBundle("~/bundles/underscore").Include(
                 "~/Scripts/underscore.js"));
@@ -47,8 +55,12 @@ namespace TrackerWeb
                 "~/Scripts/respond.js"));
 
             bundles.Add(new StyleBundle("~/Content/css").Include(
+                 "~/Content/jquery-ui.css",
+                 "~/Content/theme.css",
                  "~/Content/bootstrap.css",
+                 "~/Content/dataTables.tableTools.css",
                  "~/Content/dataTables.bootstrap.css",
+                 "~/Content/editor.bootstrap.css",
                  "~/Content/Site.css"));
         }
     }

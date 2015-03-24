@@ -1,7 +1,7 @@
 ﻿function HomeViewModel(app, dataModel) {
     var self = this;
 
-    self.expenses = ko.observableArray([]);
+    self.expenses = ko.betterObservableArray();
     self.addExpense = function(date, description, amount, comment) {
         var data = { date: date, description: description, amount: amount, comment: comment };
         $.ajax({
@@ -30,7 +30,7 @@
                     'Authorization': 'Bearer ' + app.dataModel.getAccessToken()
                 },
                 success: function (data) {
-                    self.expenses(data);
+                    self.expenses.setValue(data);
                 }
             });
             //self.addExpense(new Date().toISOString(), "My expense", 0, "My Comment");

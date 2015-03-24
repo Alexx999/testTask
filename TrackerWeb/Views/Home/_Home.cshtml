@@ -1,8 +1,32 @@
 ﻿<!-- ko with: home -->
-<div class="row">
+<style type="text/css">
+    table.dataTable tr td:first-child {
+        text-align: center;
+    }
+
+    table.dataTable tr td:first-child:before {
+        content: "\f096"; /* fa-square-o */
+        font-family: FontAwesome;
+    }
+
+    table.dataTable tr.active td:first-child:before {
+        content: "\f046"; /* fa-check-square-o */
+    }
+
+    table.dataTable tr td.dataTables_empty:first-child:before {
+        content: "";
+    }
+
+    .spacer {
+        margin-top: 10px;
+    }
+</style>
+
+<div class="row spacer">
     <table id="expences" class="table table-striped table-bordered" cellspacing="0" width="100%">
         <thead>
             <tr>
+                <th></th>
                 <th>Id</th>
                 <th>Date</th>
                 <th>Time</th>
@@ -14,6 +38,7 @@
 
         <tfoot>
             <tr>
+                <th></th>
                 <th>Id</th>
                 <th>Date</th>
                 <th>Time</th>
@@ -24,5 +49,4 @@
         </tfoot>
     </table>
 </div>
-
 <!-- /ko -->
