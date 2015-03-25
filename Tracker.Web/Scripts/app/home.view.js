@@ -126,6 +126,12 @@ function RunHomeView(viewModel, dataModel) {
                 targets: [1],
                 visible: false,
                 searchable: false
+            }, {
+                targets: [2],
+                orderData: [2, 3]
+            }, {
+                targets: [3],
+                orderData: [3, 2]
             }
         ]
     });
