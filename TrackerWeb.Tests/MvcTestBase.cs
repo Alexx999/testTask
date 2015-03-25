@@ -17,7 +17,7 @@ using TrackerWeb.Tests.Mocks;
 
 namespace TrackerWeb.Tests
 {
-    public abstract class MvcTestBase
+    public abstract class MvcTestBase : TestBase
     {
         protected ApplicationUserManager UserManager;
         protected ApplicationSignInManager SignInManager;
@@ -78,17 +78,6 @@ namespace TrackerWeb.Tests
             return mockAuthenticationManager;
         }
 
-        protected ClaimsIdentity CreateClaimsIdentity(string userId, string userEmail, string userName)
-        {
-            return new ClaimsIdentity(new[]
-                {
-                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", userId, "String", "TestIssuer"),
-                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", userEmail),
-                    new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", userName)
-                }, "TestAuth");
-        }
-
-
         protected virtual void SetupControllerForTests(Controller controller, bool identityAuthenticated = false)
         {
             var owinContext = new OwinContext();
@@ -132,8 +121,6 @@ namespace TrackerWeb.Tests
             controller.Url = helper;
             controller.ControllerContext = new ControllerContext(context.Object, new RouteData(), controller);
         }
-
-        protected abstract string GetControllerPath();
 
         public virtual void Cleanup()
         {

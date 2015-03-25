@@ -14,6 +14,8 @@ namespace TrackerWeb.Tests
             var controller = new HomeController();
             var result = controller.Index();
             Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var viewResult = (ViewResult)result;
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
     }
 }

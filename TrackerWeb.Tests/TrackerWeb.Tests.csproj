@@ -138,11 +138,16 @@
     <Reference Include="System.Net.Http.WebRequest" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiTestBase.cs" />
     <Compile Include="Mocks\MvcMockHelpers.cs" />
+    <Compile Include="Mocks\TestDbAsyncEnumerable.cs" />
+    <Compile Include="Mocks\TestDbAsyncEnumerator.cs" />
+    <Compile Include="Mocks\TestDbAsyncQueryProvider.cs" />
     <Compile Include="Mocks\TestUserStore.cs" />
     <Compile Include="MvcTestBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AccountApiTest.cs" />
+    <Compile Include="TestBase.cs" />
     <Compile Include="TestConfig.cs" />
     <Compile Include="AccountApiIntegrationTest.cs" />
     <Compile Include="HomeTest.cs" />
@@ -151,7 +156,8 @@
     <Compile Include="Mocks\TestDataProtection.cs" />
     <Compile Include="ManageTest.cs" />
     <Compile Include="OAuthTest.cs" />
-    <Compile Include="ExpenceApiIntegrationTest.cs" />
+    <Compile Include="ExpenseApiIntegrationTest.cs" />
+    <Compile Include="ExpensesTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.config" />

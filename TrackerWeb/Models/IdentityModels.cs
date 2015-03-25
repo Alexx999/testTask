@@ -19,16 +19,16 @@ namespace TrackerWeb.Models
 
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public DbSet<Expense> Expenses { get; set; }
+        public virtual DbSet<Expense> Expenses { get; set; }
 
         public ApplicationDbContext()
             : base("DefaultConnection", throwIfV1Schema: false)
         {
         }
 
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        public virtual void SetModified(object entity)
         {
-            base.OnModelCreating(modelBuilder);
+            Entry(entity).State = EntityState.Modified;
         }
 
         public static ApplicationDbContext Create()

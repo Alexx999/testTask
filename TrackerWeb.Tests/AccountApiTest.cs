@@ -1,18 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web.Http;
-using System.Web.Http.Controllers;
 using System.Web.Http.Results;
-using System.Web.Http.Routing;
 using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TrackerWeb.Models;
 using TrackerWeb.Controllers.API;
 using Tracker.Models.Account;
 using TrackerWeb.Tests.Mocks;
@@ -20,28 +13,29 @@ using TrackerWeb.Tests.Mocks;
 namespace TrackerWeb.Tests
 {
     [TestClass]
-    public class AccountApiTest
+    public class AccountApiTest : ApiTestBase
     {
-        private ApplicationUserManager _userManager;
         private AccountController _controller;
 
         [TestInitialize]
-        public void Init()
+        public new void Init()
         {
-            _userManager = ApplicationUserManager.Create(new TestUserStore<ApplicationUser>());
-            _controller = new AccountController(_userManager);
+            base.Init();
+            _controller = new AccountController(UserManager);
             SetupControllerForTests(_controller);
         }
 
         [TestMethod]
         public async Task TestRegister()
         {
+            var user = await UserManager.FindByEmailAsync(TestConfig.TestUserEmail);
+            await UserManager.DeleteAsync(user);
             var model = new RegisterModel {Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword, Name = "Test User"};
             var result = await _controller.PostAccount(model);
             Assert.IsInstanceOfType(result, typeof(OkResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
             Assert.IsTrue(requestResult.IsSuccessStatusCode);
-            Assert.IsNotNull(_userManager.FindByEmail(TestConfig.TestUserEmail));
+            Assert.IsNotNull(UserManager.FindByEmail(TestConfig.TestUserEmail));
         }
 
         [TestMethod]
@@ -49,7 +43,7 @@ namespace TrackerWeb.Tests
         {
             var controller = new AccountController();
             SetupControllerForTests(controller);
-            Assert.AreSame(controller.UserManager, _userManager);
+            Assert.AreSame(UserManager, controller.UserManager);
         }
 
         [TestMethod]
@@ -57,7 +51,7 @@ namespace TrackerWeb.Tests
         {
             var model = new RegisterModel { Email = TestConfig.TestUserEmail, Password = TestConfig.TestUserPassword, Name = "Test User" };
             await _controller.PostAccount(model);
-            Assert.IsNotNull(_userManager.FindByEmail(TestConfig.TestUserEmail));
+            Assert.IsNotNull(UserManager.FindByEmail(TestConfig.TestUserEmail));
             var result = await _controller.PostAccount(model);
             Assert.IsInstanceOfType(result, typeof(InvalidModelStateResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
@@ -74,7 +68,7 @@ namespace TrackerWeb.Tests
             Assert.IsInstanceOfType(result, typeof(InvalidModelStateResult));
             var requestResult = await result.ExecuteAsync(new CancellationToken());
             Assert.IsFalse(requestResult.IsSuccessStatusCode);
-            Assert.IsNull(_userManager.FindByEmail(badEmail));
+            Assert.IsNull(UserManager.FindByEmail(badEmail));
         }
 
         [TestMethod]
@@ -122,7 +116,7 @@ namespace TrackerWeb.Tests
         [TestMethod]
         public async Task TestPasswordComplexityValidation()
         {
-            var validator = _userManager.PasswordValidator;
+            var validator = UserManager.PasswordValidator;
 
             Assert.IsFalse((await validator.ValidateAsync("!wrT1")).Succeeded);
             Assert.IsFalse((await validator.ValidateAsync("qwerty")).Succeeded);
@@ -133,10 +127,10 @@ namespace TrackerWeb.Tests
         }
 
         [TestCleanup]
-        public void Cleanup()
+        public override void Cleanup()
         {
             _controller.Dispose();
-            _userManager.Dispose();
+            base.Cleanup();
         }
 
         private static bool Validate(RegisterModel model)
@@ -146,19 +140,9 @@ namespace TrackerWeb.Tests
             return Validator.TryValidateObject(model, context, results, true);
         }
 
-        private void SetupControllerForTests(ApiController controller)
+        protected override string GetControllerPath()
         {
-            var config = new HttpConfiguration();
-            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/api/Account");
-            var route = config.Routes.MapHttpRoute("DefaultApi", "api/{controller}/{id}");
-            var routeData = new HttpRouteData(route, new HttpRouteValueDictionary { { "controller", "Account" } });
-
-            controller.ControllerContext = new HttpControllerContext(config, routeData, request);
-            controller.Request = request;
-            controller.Request.SetConfiguration(config);
-            var owinContext = new OwinContext();
-            owinContext.Set(_userManager);
-            request.Properties["MS_OwinContext"] = owinContext;
+            return "http://localhost/api/Account";
         }
 
     }
