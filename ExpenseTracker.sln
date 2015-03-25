@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackerWeb", "TrackerWeb\TrackerWeb.csproj", "{1CC077D0-499D-4273-A75A-E00E90105985}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tracker.Web", "Tracker.Web\Tracker.Web.csproj", "{1CC077D0-499D-4273-A75A-E00E90105985}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackerWeb.Tests", "TrackerWeb.Tests\TrackerWeb.Tests.csproj", "{2F01D3B7-6C41-4D83-B4B7-0B7BCE64748F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tracker.Web.Tests", "Tracker.Web.Tests\Tracker.Web.Tests.csproj", "{2F01D3B7-6C41-4D83-B4B7-0B7BCE64748F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tracker.Models", "Tracker.Models\Tracker.Models.csproj", "{5D4F43FF-8CBF-485E-BDCE-3A2C40D12307}"
 EndProject
