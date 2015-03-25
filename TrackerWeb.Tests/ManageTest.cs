@@ -30,7 +30,7 @@ namespace TrackerWeb.Tests
         {
             var controller = new ManageController();
             SetupControllerForTests(controller);
-            Assert.AreSame(controller.UserManager, UserManager);
+            Assert.AreSame(UserManager, controller.UserManager);
         }
 
         [TestMethod]
@@ -38,17 +38,17 @@ namespace TrackerWeb.Tests
         {
             var controller = new ManageController();
             SetupControllerForTests(controller);
-            Assert.AreSame(controller.SignInManager, SignInManager);
+            Assert.AreSame(SignInManager, controller.SignInManager);
         }
 
         [TestMethod]
         public async Task TestIndexView()
         {
             var result = await _controller.Index(null);
-            Assert.AreEqual(_controller.ViewBag.StatusMessage, "");
+            Assert.AreEqual(string.Empty, _controller.ViewBag.StatusMessage);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace TrackerWeb.Tests
             foreach (var value in values)
             {
                 await _controller.Index(value);
-                Assert.AreNotEqual(_controller.ViewBag.StatusMessage, "", string.Format("Message for enum value {0} must not be empty", value));
+                Assert.AreNotEqual("", _controller.ViewBag.StatusMessage, string.Format("Message for enum value {0} must not be empty", value));
             }
         }
 
@@ -87,8 +87,8 @@ namespace TrackerWeb.Tests
             var result = await controller.RemoveLogin("", "");
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "ManageLogins");
-            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.Error);
+            Assert.AreEqual("ManageLogins", redirectResult.RouteValues["action"]);
+            Assert.AreEqual(ManageController.ManageMessageId.Error, redirectResult.RouteValues["Message"]);
         }
 
         [TestMethod]
@@ -97,8 +97,8 @@ namespace TrackerWeb.Tests
             var result = await _controller.RemoveLogin("", "");
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "ManageLogins");
-            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.RemoveLoginSuccess);
+            Assert.AreEqual("ManageLogins", redirectResult.RouteValues["action"]);
+            Assert.AreEqual(ManageController.ManageMessageId.RemoveLoginSuccess, redirectResult.RouteValues["Message"]);
         }
 
         [TestMethod]
@@ -107,7 +107,7 @@ namespace TrackerWeb.Tests
             var result = _controller.AddPhoneNumber();
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -119,7 +119,7 @@ namespace TrackerWeb.Tests
             var result = await _controller.AddPhoneNumber(model);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -130,7 +130,7 @@ namespace TrackerWeb.Tests
             var result = await _controller.AddPhoneNumber(model);
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "VerifyPhoneNumber");
+            Assert.AreEqual("VerifyPhoneNumber", redirectResult.RouteValues["action"]);
         }
 
         [TestMethod]
@@ -139,8 +139,8 @@ namespace TrackerWeb.Tests
             var result = await _controller.EnableTwoFactorAuthentication();
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
-            Assert.AreEqual(redirectResult.RouteValues["controller"], "Manage");
+            Assert.AreEqual("Index", redirectResult.RouteValues["action"]);
+            Assert.AreEqual("Manage", redirectResult.RouteValues["controller"]);
         }
 
         [TestMethod]
@@ -149,8 +149,8 @@ namespace TrackerWeb.Tests
             var result = await _controller.DisableTwoFactorAuthentication();
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
-            Assert.AreEqual(redirectResult.RouteValues["controller"], "Manage");
+            Assert.AreEqual("Index", redirectResult.RouteValues["action"]);
+            Assert.AreEqual("Manage", redirectResult.RouteValues["controller"]);
         }
 
         [TestMethod]
@@ -159,7 +159,7 @@ namespace TrackerWeb.Tests
             var result = _controller.VerifyPhoneNumber((string)null);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "Error");
+            Assert.AreEqual("Error", viewResult.ViewName);
         }
 
         [TestMethod]
@@ -168,7 +168,7 @@ namespace TrackerWeb.Tests
             var result = _controller.VerifyPhoneNumber("0000000");
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -180,7 +180,7 @@ namespace TrackerWeb.Tests
             var result = await _controller.VerifyPhoneNumber(model);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -192,7 +192,7 @@ namespace TrackerWeb.Tests
             Assert.IsFalse(_controller.ModelState.IsValid);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -211,8 +211,8 @@ namespace TrackerWeb.Tests
             var result = await controller.VerifyPhoneNumber(model);
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
-            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.AddPhoneSuccess);
+            Assert.AreEqual("Index", redirectResult.RouteValues["action"]);
+            Assert.AreEqual(ManageController.ManageMessageId.AddPhoneSuccess, redirectResult.RouteValues["Message"]);
         }
 
         [TestMethod]
@@ -221,8 +221,8 @@ namespace TrackerWeb.Tests
             var result = await _controller.RemovePhoneNumber();
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
-            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.RemovePhoneSuccess);
+            Assert.AreEqual("Index", redirectResult.RouteValues["action"]);
+            Assert.AreEqual(ManageController.ManageMessageId.RemovePhoneSuccess, redirectResult.RouteValues["Message"]);
         }
 
         [TestMethod]
@@ -239,8 +239,8 @@ namespace TrackerWeb.Tests
             var result = await controller.RemovePhoneNumber();
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
-            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.Error);
+            Assert.AreEqual("Index", redirectResult.RouteValues["action"]);
+            Assert.AreEqual(ManageController.ManageMessageId.Error, redirectResult.RouteValues["Message"]);
         }
 
         [TestMethod]
@@ -249,7 +249,7 @@ namespace TrackerWeb.Tests
             var result = _controller.ChangePassword();
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -261,7 +261,7 @@ namespace TrackerWeb.Tests
             var result = await _controller.ChangePassword(model);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -278,8 +278,8 @@ namespace TrackerWeb.Tests
             var result = await _controller.ChangePassword(model);
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
-            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.ChangePasswordSuccess);
+            Assert.AreEqual("Index", redirectResult.RouteValues["action"]);
+            Assert.AreEqual(ManageController.ManageMessageId.ChangePasswordSuccess, redirectResult.RouteValues["Message"]);
         }
 
         [TestMethod]
@@ -297,7 +297,7 @@ namespace TrackerWeb.Tests
             Assert.IsFalse(_controller.ModelState.IsValid);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -306,7 +306,7 @@ namespace TrackerWeb.Tests
             var result = _controller.SetPassword();
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -318,7 +318,7 @@ namespace TrackerWeb.Tests
             var result = await _controller.SetPassword(model);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -335,7 +335,7 @@ namespace TrackerWeb.Tests
             Assert.IsFalse(_controller.ModelState.IsValid);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -354,8 +354,8 @@ namespace TrackerWeb.Tests
             var result = await controller.SetPassword(model);
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "Index");
-            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.SetPasswordSuccess);
+            Assert.AreEqual("Index", redirectResult.RouteValues["action"]);
+            Assert.AreEqual(ManageController.ManageMessageId.SetPasswordSuccess, redirectResult.RouteValues["Message"]);
         }
 
         [TestMethod]
@@ -367,19 +367,19 @@ namespace TrackerWeb.Tests
             var result = await controller.ManageLogins(null);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "Error");
+            Assert.AreEqual("Error", viewResult.ViewName);
         }
 
         [TestMethod]
         public async Task TestManageLoginsViewMessages()
         {
             await _controller.ManageLogins(null);
-            Assert.AreEqual(_controller.ViewBag.StatusMessage, "");
+            Assert.AreEqual(string.Empty, _controller.ViewBag.StatusMessage);
             var values = Enum.GetValues(typeof(ManageController.ManageMessageId)).Cast<ManageController.ManageMessageId>();
             foreach (var value in values)
             {
                 await _controller.Index(value);
-                Assert.AreNotEqual(_controller.ViewBag.StatusMessage, "", string.Format("Message for enum value {0} must not be empty", value));
+                Assert.AreNotEqual("", _controller.ViewBag.StatusMessage, string.Format("Message for enum value {0} must not be empty", value));
             }
         }
 
@@ -392,7 +392,7 @@ namespace TrackerWeb.Tests
             var result = await _controller.ManageLogins(null);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -404,7 +404,7 @@ namespace TrackerWeb.Tests
             var result = await controller.ManageLogins(null);
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             var viewResult = (ViewResult)result;
-            Assert.AreEqual(viewResult.ViewName, "");
+            Assert.AreEqual(string.Empty, viewResult.ViewName);
         }
 
         [TestMethod]
@@ -420,8 +420,8 @@ namespace TrackerWeb.Tests
             var result = await _controller.LinkLoginCallback();
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "ManageLogins");
-            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.Error);
+            Assert.AreEqual("ManageLogins", redirectResult.RouteValues["action"]);
+            Assert.AreEqual(ManageController.ManageMessageId.Error, redirectResult.RouteValues["Message"]);
         }
 
         [TestMethod]
@@ -434,7 +434,7 @@ namespace TrackerWeb.Tests
             var result = await controller.LinkLoginCallback();
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "ManageLogins");
+            Assert.AreEqual("ManageLogins", redirectResult.RouteValues["action"]);
         }
 
         [TestMethod]
@@ -451,8 +451,8 @@ namespace TrackerWeb.Tests
             var result = await controller.LinkLoginCallback();
             Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
             var redirectResult = (RedirectToRouteResult)result;
-            Assert.AreEqual(redirectResult.RouteValues["action"], "ManageLogins");
-            Assert.AreEqual(redirectResult.RouteValues["Message"], ManageController.ManageMessageId.Error);
+            Assert.AreEqual("ManageLogins", redirectResult.RouteValues["action"]);
+            Assert.AreEqual(ManageController.ManageMessageId.Error, redirectResult.RouteValues["Message"]);
         }
 
         [TestCleanup]

@@ -49,8 +49,8 @@ namespace TrackerWeb.Tests
 
             using (var response = (HttpWebResponse)await request.GetResponseAsync())
             {
-                Assert.AreEqual(response.StatusCode, HttpStatusCode.OK);
-                Assert.AreEqual(response.ContentLength, 0);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                Assert.AreEqual(0, response.ContentLength);
             }
 
             var user = await _userManager.FindByEmailAsync(TestConfig.TestUserEmail);
