@@ -170,7 +170,7 @@
       <Project>{5d4f43ff-8cbf-485e-bdce-3a2c40d12307}</Project>
       <Name>Tracker.Models</Name>
     </ProjectReference>
-    <ProjectReference Include="..\TrackerWeb\Tracker.Web.csproj">
+    <ProjectReference Include="..\Tracker.Web\Tracker.Web.csproj">
       <Project>{1CC077D0-499D-4273-A75A-E00E90105985}</Project>
       <Name>Tracker.Web</Name>
     </ProjectReference>
