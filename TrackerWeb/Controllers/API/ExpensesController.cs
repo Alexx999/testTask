@@ -24,13 +24,12 @@ namespace TrackerWeb.Controllers.API
 
         public ExpensesController()
         {
-            _context = new ApplicationDbContext();
         }
 
         public ExpensesController(ApplicationUserManager userManager, ApplicationDbContext context)
         {
             UserManager = userManager;
-            _context = context;
+            Context = context;
         }
 
         public ApplicationUserManager UserManager
@@ -97,24 +96,16 @@ namespace TrackerWeb.Controllers.API
                 return BadRequest();
             }
 
-            expense.ApplicationUserID = User.Identity.GetUserId();
-            Context.Entry(expense).State = EntityState.Modified;
+            Expense existingExpense = await Context.Expenses.FindAsync(id);
+            if (existingExpense == null || existingExpense.ApplicationUserID != User.Identity.GetUserId())
+            {
+                return NotFound();
+            }
 
-            try
-            {
-                await Context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ExpenseExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            expense.ApplicationUserID = existingExpense.ApplicationUserID;
+            Context.SetModified(expense);
+
+            await Context.SaveChangesAsync();
 
             return StatusCode(HttpStatusCode.NoContent);
         }
