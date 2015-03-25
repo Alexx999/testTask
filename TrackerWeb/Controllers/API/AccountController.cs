@@ -4,9 +4,9 @@ using System.Web.Http;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Tracker.Models.Account;
-using TrackerWeb.Models;
+using Tracker.Web.Models;
 
-namespace TrackerWeb.Controllers.API
+namespace Tracker.Web.Controllers.API
 {
     [Authorize]
     public class AccountController : ApiController

@@ -1,11 +1,9 @@
-namespace TrackerWeb.Migrations
-{
-    using System;
-    using System.Data.Entity;
-    using System.Data.Entity.Migrations;
-    using System.Linq;
+using System.Data.Entity.Migrations;
+using Tracker.Web.Models;
 
-    internal sealed class Configuration : DbMigrationsConfiguration<TrackerWeb.Models.ApplicationDbContext>
+namespace Tracker.Web.Migrations
+{
+    internal sealed class Configuration : DbMigrationsConfiguration<ApplicationDbContext>
     {
         public Configuration()
         {
@@ -13,7 +11,7 @@ namespace TrackerWeb.Migrations
             ContextKey = "TrackerWeb.Models.ApplicationDbContext";
         }
 
-        protected override void Seed(TrackerWeb.Models.ApplicationDbContext context)
+        protected override void Seed(ApplicationDbContext context)
         {
             //  This method will be called after migrating to the latest version.
 

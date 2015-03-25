@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace TrackerWeb.Models
+namespace Tracker.Web.Models
 {
     // Models returned by AccountController actions.
     public class ExternalLoginConfirmationViewModel

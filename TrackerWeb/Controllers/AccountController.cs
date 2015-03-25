@@ -6,10 +6,10 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
-using TrackerWeb.Models;
-using TrackerWeb.Results;
+using Tracker.Web.Models;
+using Tracker.Web.Results;
 
-namespace TrackerWeb.Controllers
+namespace Tracker.Web.Controllers
 {
     [Authorize]
     public class AccountController : Controller

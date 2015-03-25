@@ -4,7 +4,7 @@ using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 
-namespace TrackerWeb
+namespace Tracker.Web
 {
     public class MvcApplication : HttpApplication
     {

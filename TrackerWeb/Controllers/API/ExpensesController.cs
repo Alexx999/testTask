@@ -9,9 +9,9 @@ using System.Web.Http.Description;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Tracker.Models;
-using TrackerWeb.Models;
+using Tracker.Web.Models;
 
-namespace TrackerWeb.Controllers.API
+namespace Tracker.Web.Controllers.API
 {
     [Authorize]
     public class ExpensesController : ApiController

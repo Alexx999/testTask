@@ -1,6 +1,6 @@
 ﻿using System.Web.Mvc;
 
-namespace TrackerWeb.Controllers
+namespace Tracker.Web.Controllers
 {
     [Authorize]
     public class HomeController : Controller

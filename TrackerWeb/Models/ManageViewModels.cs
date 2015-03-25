@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin.Security;
 
-namespace TrackerWeb.Models
+namespace Tracker.Web.Models
 {
     public class IndexViewModel
     {
