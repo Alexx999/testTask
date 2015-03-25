@@ -50,7 +50,7 @@ namespace TrackerWeb.Controllers.API
             {
                 return _context ?? Request.GetOwinContext().Get<ApplicationDbContext>();
             }
-            set
+            private set
             {
                 _context = value;
             }
