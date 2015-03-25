@@ -5,12 +5,12 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using TrackerWeb.Controllers;
-using TrackerWeb.Models;
-using TrackerWeb.Results;
-using TrackerWeb.Tests.Mocks;
+using Tracker.Web.Controllers;
+using Tracker.Web.Models;
+using Tracker.Web.Results;
+using Tracker.Web.Tests.Mocks;
 
-namespace TrackerWeb.Tests
+namespace Tracker.Web.Tests
 {
     [TestClass]
     public class ManageTest : MvcTestBase

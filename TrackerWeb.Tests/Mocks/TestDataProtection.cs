@@ -1,6 +1,6 @@
 using Microsoft.Owin.Security.DataProtection;
 
-namespace TrackerWeb.Tests.Mocks
+namespace Tracker.Web.Tests.Mocks
 {
     public class TestDataProtection : IDataProtector
     {

@@ -1,22 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Routing;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using TrackerWeb.Models;
-using TrackerWeb.Tests.Mocks;
+using Tracker.Web.Models;
+using Tracker.Web.Tests.Mocks;
 
-namespace TrackerWeb.Tests
+namespace Tracker.Web.Tests
 {
     public abstract class ApiTestBase : TestBase
     {

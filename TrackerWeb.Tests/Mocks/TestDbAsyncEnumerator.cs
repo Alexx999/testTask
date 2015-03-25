@@ -3,7 +3,7 @@ using System.Data.Entity.Infrastructure;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TrackerWeb.Tests.Mocks
+namespace Tracker.Web.Tests.Mocks
 {
     internal class TestDbAsyncEnumerator<T> : IDbAsyncEnumerator<T>
     {

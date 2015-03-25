@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.OAuth;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TrackerWeb.Providers;
+using Tracker.Web.Providers;
 
-namespace TrackerWeb.Tests
+namespace Tracker.Web.Tests
 {
     [TestClass]
     public class OAuthTest

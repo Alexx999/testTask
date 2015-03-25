@@ -14,11 +14,11 @@ using Microsoft.Owin;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Tracker.Models;
-using TrackerWeb.Controllers.API;
-using TrackerWeb.Models;
-using TrackerWeb.Tests.Mocks;
+using Tracker.Web.Controllers.API;
+using Tracker.Web.Models;
+using Tracker.Web.Tests.Mocks;
 
-namespace TrackerWeb.Tests
+namespace Tracker.Web.Tests
 {
     [TestClass]
     public class ExpensesTest : ApiTestBase

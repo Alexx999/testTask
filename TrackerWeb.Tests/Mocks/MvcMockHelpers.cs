@@ -6,7 +6,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 
-namespace TrackerWeb.Tests.Mocks
+namespace Tracker.Web.Tests.Mocks
 {
     /// <summary>
     /// This helper class can be used to set up Moq mocks of MVC3/4 controllers.

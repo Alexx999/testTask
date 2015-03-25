@@ -1,9 +1,8 @@
-﻿using System;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TrackerWeb.Controllers;
+using Tracker.Web.Controllers;
 
-namespace TrackerWeb.Tests
+namespace Tracker.Web.Tests
 {
     [TestClass]
     public class HomeTest

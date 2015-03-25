@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace TrackerWeb.Tests
+namespace Tracker.Web.Tests
 {
     public abstract class TestBase
     {

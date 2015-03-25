@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http.Results;
 using Microsoft.AspNet.Identity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TrackerWeb.Controllers.API;
 using Tracker.Models.Account;
-using TrackerWeb.Tests.Mocks;
+using Tracker.Web.Controllers.API;
+using Tracker.Web.Tests.Mocks;
 
-namespace TrackerWeb.Tests
+namespace Tracker.Web.Tests
 {
     [TestClass]
     public class AccountApiTest : ApiTestBase

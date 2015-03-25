@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TrackerWeb.Tests.Mocks
+namespace Tracker.Web.Tests.Mocks
 {
     internal class TestDbAsyncQueryProvider<TEntity> : IDbAsyncQueryProvider
     {

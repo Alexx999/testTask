@@ -1,6 +1,6 @@
 using Microsoft.AspNet.Identity;
 
-namespace TrackerWeb.Tests.Mocks
+namespace Tracker.Web.Tests.Mocks
 {
     public class TestIdentityResult : IdentityResult
     {

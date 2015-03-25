@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 
-namespace TrackerWeb.Tests.Mocks
+namespace Tracker.Web.Tests.Mocks
 {
     public class TestUserStore<TUser> : IUserStore<TUser>, IUserEmailStore<TUser>, IUserPasswordStore<TUser>, IUserLockoutStore<TUser, string>, IUserTwoFactorStore<TUser, string>, IUserPhoneNumberStore<TUser>, IUserLoginStore<TUser>, IUserSecurityStampStore<TUser> where TUser : class, IUser<string>
     {

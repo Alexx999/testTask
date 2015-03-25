@@ -1,16 +1,13 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Tracker.Models.Account;
-using TrackerWeb.Models;
+using Tracker.Web.Models;
 
-namespace TrackerWeb.Tests
+namespace Tracker.Web.Tests
 {
     [TestClass]
     public class AccountApiIntegrationTest

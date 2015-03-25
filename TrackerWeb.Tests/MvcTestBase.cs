@@ -11,11 +11,11 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Moq;
-using TrackerWeb.Models;
-using TrackerWeb.Results;
-using TrackerWeb.Tests.Mocks;
+using Tracker.Web.Models;
+using Tracker.Web.Results;
+using Tracker.Web.Tests.Mocks;
 
-namespace TrackerWeb.Tests
+namespace Tracker.Web.Tests
 {
     public abstract class MvcTestBase : TestBase
     {
