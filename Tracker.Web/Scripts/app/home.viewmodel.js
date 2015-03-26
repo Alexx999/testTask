@@ -45,6 +45,7 @@
             RunHomeView(self, dataModel);
         });
         this.get('/', function () { this.app.runRoute('get', '#home') });
+        this.get('#_=_', function () { this.app.runRoute('get', '#home') });
     });
 
     return self;
