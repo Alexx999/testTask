@@ -28,7 +28,7 @@
 
     self.updateExpense = function (id, data, success, error) {
         app.simpleAjax(app.dataModel.userExpensesUrl + "/" + id, "PUT", JSON.stringify(data),
-            function (data) {
+            function () {
                 var target = _.first(self.expenses(), function(item) {
                     return item.id === id;
                 });

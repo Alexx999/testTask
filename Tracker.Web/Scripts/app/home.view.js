@@ -12,13 +12,16 @@
             var m = moment.utc(data.date);
             data.date = m.format(dataModel.dateFormat);
             data.time = m.format(dataModel.timeFormat);
+            data.amount = Number(model.amount).toFixed(2);
             return data;
         }
 
         function dataToModel(data) {
             var model = _.extendOwn({}, data);
             delete model.time;
-            model.date = data.date + "T" + data.time + "Z";
+            var parsedDate = moment(data.date);
+            var parsedTime = moment(data.time, dataModel.timeFormat);
+            model.date = parsedDate.format(dataModel.dateFormat) + "T" + parsedTime.format(dataModel.timeFormat) + "Z";
             return model;
         }
 
@@ -31,7 +34,9 @@
         }
 
         function edit(data, successCallback, errorCallback) {
-            viewModel.updateExpense(data.id, dataToModel(data.data), successCallback, errorCallback);
+            viewModel.updateExpense(data.id, dataToModel(data.data), function(model) {
+                successCallback(modelToData(model));
+            }, errorCallback);
         }
 
         function remove(data, successCallback, errorCallback) {
@@ -102,9 +107,34 @@
             ajax: editorAction
         });
 
+        editor.on("preSubmit", function (e, o, action) {
+            if (action !== "remove") {
+                var parsedData = moment(o.data.date);
+                if (!parsedData.isValid()) {
+                    this.error("date", "Invalid date");
+                    return false;
+                }
+                var parsedTime = moment(o.data.time, dataModel.timeFormat);
+                if (!parsedTime.isValid()) {
+                    this.error("time", "Invalid time");
+                    return false;
+                }
+                if (o.data.description == null || o.data.description.length === 0) {
+                    this.error("description", "Entry must have description");
+                    return false;
+                }
+                var parsedAmount = Number(o.data.amount);
+                if (isNaN(parsedAmount) || parsedAmount <= 0) {
+                    this.error("amount", "Invalid amount");
+                    return false;
+                }
+                o.data.amount = parsedAmount.toFixed(2);
+            }
+        });
+
         $("#expences").on("click", "tbody td:not(:first-child)", function(e) {
             editor.inline(this, {
-                buttons: { label: '&gt;', fn: function() { this.submit(); } }
+                buttons: { label: "&gt;", fn: function() { this.submit(); } }
             });
             $("div.DTE_Inline_Buttons").addClass("input-group-addon");
         });
