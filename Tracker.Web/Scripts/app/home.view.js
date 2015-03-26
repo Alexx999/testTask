@@ -98,7 +98,8 @@
                     name: "description"
                 }, {
                     label: "Amount:",
-                    name: "amount"
+                    name: "amount",
+                    type: "numeric"
                 }, {
                     label: "Comment:",
                     name: "comment"
