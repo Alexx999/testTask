@@ -31,6 +31,11 @@ namespace Tracker.Web.Models
             Entry(entity).State = EntityState.Modified;
         }
 
+        public virtual void SetDetached(object entity)
+        {
+            Entry(entity).State = EntityState.Detached;
+        }
+
         public static ApplicationDbContext Create()
         {
             return new ApplicationDbContext();

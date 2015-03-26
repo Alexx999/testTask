@@ -159,6 +159,8 @@ namespace Tracker.Web.Tests
             var statusResult = (StatusCodeResult)result;
             Assert.AreEqual(HttpStatusCode.NoContent, statusResult.StatusCode);
             Assert.AreEqual(_user.Id, expense.ApplicationUserID);
+            //Since we're checking if item exists we must detach it before attaching a new one
+            _mockContext.Verify(m => m.SetDetached(It.IsAny<object>()), Times.Once);
             _mockContext.Verify(m => m.SetModified(It.IsAny<object>()), Times.Once);
             _mockContext.Verify(m => m.SaveChangesAsync(), Times.Once);
         }

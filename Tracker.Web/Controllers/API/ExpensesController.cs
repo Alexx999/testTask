@@ -98,7 +98,7 @@ namespace Tracker.Web.Controllers.API
             {
                 return NotFound();
             }
-
+            Context.SetDetached(existingExpense);
             expense.ApplicationUserID = existingExpense.ApplicationUserID;
             Context.SetModified(expense);
 
