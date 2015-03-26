@@ -144,6 +144,7 @@
             deferRender: true,
             lengthChange: false,
             pageLength: 25,
+            autoWidth: false,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search"
