@@ -1,161 +1,163 @@
 ﻿"use strict";
-var initialized = false;
-function RunHomeView(viewModel, dataModel) {
-    var self = this;
-    if (initialized) return;
-    initialized = true;
+(function(window, undefined) {
+    var initialized = false;
 
-    function modelToData(model) {
-        var data = _.extendOwn({}, model);
-        var m = moment.utc(data.date);
-        data.date = m.format(dataModel.dateFormat);
-        data.time = m.format(dataModel.timeFormat);
-        return data;
-    }
+    window.RunHomeView = function(viewModel, dataModel) {
+        var self = this;
+        if (initialized) return;
+        initialized = true;
 
-    function dataToModel(data) {
-        var model = _.extendOwn({}, data);
-        delete model.time;
-        model.date = data.date + "T" + data.time + "Z";
-        return model;
-    }
+        function modelToData(model) {
+            var data = _.extendOwn({}, model);
+            var m = moment.utc(data.date);
+            data.date = m.format(dataModel.dateFormat);
+            data.time = m.format(dataModel.timeFormat);
+            return data;
+        }
 
-    function create(data, successCallback, errorCallback) {
-        var vm = dataToModel(data.data);
-        delete vm.expenseId;
-        viewModel.addExpense(vm, function() {
-            successCallback(null);
-        }, errorCallback);
-    }
+        function dataToModel(data) {
+            var model = _.extendOwn({}, data);
+            delete model.time;
+            model.date = data.date + "T" + data.time + "Z";
+            return model;
+        }
 
-    function edit(data, successCallback, errorCallback) {
-        viewModel.updateExpense(data.id, dataToModel(data.data), successCallback, errorCallback);
-    }
+        function create(data, successCallback, errorCallback) {
+            var vm = dataToModel(data.data);
+            delete vm.expenseId;
+            viewModel.addExpense(vm, function() {
+                successCallback(null);
+            }, errorCallback);
+        }
 
-    function remove(data, successCallback, errorCallback) {
-        viewModel.deleteExpense(data.id, successCallback, errorCallback);
-    }
+        function edit(data, successCallback, errorCallback) {
+            viewModel.updateExpense(data.id, dataToModel(data.data), successCallback, errorCallback);
+        }
 
-    var ajaxActions = { create: create, edit: edit, remove: remove }
+        function remove(data, successCallback, errorCallback) {
+            viewModel.deleteExpense(data.id, successCallback, errorCallback);
+        }
 
-    function editorAction(method, url, data, successCallback, errorCallback) {
-        ajaxActions[data.action](data, function (row) {
-            successCallback({ row: row });
-        }, function (dataObject) {
-            if (dataObject != null) {
-                var dtObject = { error: dataObject.message, row: data.data, fieldErrors: [] };
-                var modelState = dataObject.modelState;
-                _.each(_.keys(modelState), function(key) {
-                    var parts = key.split(".");
-                    if (parts.length === 2 && parts[0] === "expense") {
-                        dtObject.fieldErrors.push({ name: parts[1], status: modelState[key][0] });
-                        if (parts[1] === "date") {
-                            dtObject.fieldErrors.push({ name: "time", status: modelState[key][0] });
+        var ajaxActions = { create: create, edit: edit, remove: remove }
+
+        function editorAction(method, url, data, successCallback, errorCallback) {
+            ajaxActions[data.action](data, function(row) {
+                successCallback({ row: row });
+            }, function(dataObject) {
+                if (dataObject != null) {
+                    var dtObject = { error: dataObject.message, row: data.data, fieldErrors: [] };
+                    var modelState = dataObject.modelState;
+                    _.each(_.keys(modelState), function(key) {
+                        var parts = key.split(".");
+                        if (parts.length === 2 && parts[0] === "expense") {
+                            dtObject.fieldErrors.push({ name: parts[1], status: modelState[key][0] });
+                            if (parts[1] === "date") {
+                                dtObject.fieldErrors.push({ name: "time", status: modelState[key][0] });
+                            }
                         }
-                    }
-                });
-                successCallback(dtObject);
-            } else {
-                errorCallback();
-            }
-        });
-    }
-
-    var data = _.map(viewModel.expenses(), modelToData);
-
-    var editor = new $.fn.dataTable.Editor({
-        table: "#expences",
-        idSrc: "expenseId",
-        fields: [
-            {
-                name: "expenseId",
-                type: "hidden"
-            },{
-                label: "Date:",
-                name: "date",
-                type: "date",
-                dateFormat: $.datepicker.ISO_8601
-            },{
-                label: "Time:",
-                name: "time",
-                type: "time",
-                opts: {
-                    timeFormat: dataModel.timeFormat,
-                    showSecond: false,
-                    showTimezone: false,
-                    addSliderAccess: true,
-                    sliderAccessArgs: { touchonly: false }
+                    });
+                    successCallback(dtObject);
+                } else {
+                    errorCallback();
                 }
-            }, {
-                label: "Description:",
-                name: "description"
-            }, {
-                label: "Amount:",
-                name: "amount"
-            }, {
-                label: "Comment:",
-                name: "comment"
-            }
-        ],
-        ajax: editorAction
-    });
+            });
+        }
 
-    $("#expences").on("click", "tbody td:not(:first-child)", function (e) {
-        editor.inline(this, {
-            buttons: { label: '&gt;', fn: function () { this.submit(); } }
+        var data = _.map(viewModel.expenses(), modelToData);
+
+        var editor = new $.fn.dataTable.Editor({
+            table: "#expences",
+            idSrc: "expenseId",
+            fields: [
+                {
+                    name: "expenseId",
+                    type: "hidden"
+                }, {
+                    label: "Date:",
+                    name: "date",
+                    type: "date",
+                    dateFormat: $.datepicker.ISO_8601
+                }, {
+                    label: "Time:",
+                    name: "time",
+                    type: "time",
+                    opts: {
+                        timeFormat: dataModel.timeFormat,
+                        showSecond: false,
+                        showTimezone: false,
+                        addSliderAccess: true,
+                        sliderAccessArgs: { touchonly: false }
+                    }
+                }, {
+                    label: "Description:",
+                    name: "description"
+                }, {
+                    label: "Amount:",
+                    name: "amount"
+                }, {
+                    label: "Comment:",
+                    name: "comment"
+                }
+            ],
+            ajax: editorAction
         });
-        $("div.DTE_Inline_Buttons").addClass("input-group-addon");
-    });
 
-    var table = $("#expences").DataTable({
-        data: data,
-        deferRender: true,
-        lengthChange: false,
-        pageLength: 25,
-        columns: [
-            { data: null, defaultContent: "", orderable: false },
-            { data: "expenseId" },
-            { data: "date" },
-            { data: "time" },
-            { data: "description" },
-            { data: "amount" },
-            { data: "comment" }
-        ],
-        order: [2, "desc"],
-        columnDefs: [
-            {
-                targets: [1],
-                visible: false,
-                searchable: false
-            }, {
-                targets: [2],
-                orderData: [2, 3]
-            }, {
-                targets: [3],
-                orderData: [3, 2]
-            }
-        ]
-    });
+        $("#expences").on("click", "tbody td:not(:first-child)", function(e) {
+            editor.inline(this, {
+                buttons: { label: '&gt;', fn: function() { this.submit(); } }
+            });
+            $("div.DTE_Inline_Buttons").addClass("input-group-addon");
+        });
 
-    var tableTools = new $.fn.dataTable.TableTools(table, {
-        sRowSelect: "os",
-        sRowSelector: "td:first-child",
-        aButtons: [
-            { sExtends: "editor_create", editor: editor },
-            { sExtends: "editor_edit", editor: editor },
-            { sExtends: "editor_remove", editor: editor }
-        ]
-    });
+        var table = $("#expences").DataTable({
+            data: data,
+            deferRender: true,
+            lengthChange: false,
+            pageLength: 25,
+            columns: [
+                { data: null, defaultContent: "", orderable: false },
+                { data: "expenseId" },
+                { data: "date" },
+                { data: "time" },
+                { data: "description" },
+                { data: "amount" },
+                { data: "comment" }
+            ],
+            order: [2, "desc"],
+            columnDefs: [
+                {
+                    targets: [1],
+                    visible: false,
+                    searchable: false
+                }, {
+                    targets: [2],
+                    orderData: [2, 3]
+                }, {
+                    targets: [3],
+                    orderData: [3, 2]
+                }
+            ]
+        });
 
-    $(tableTools.fnContainer()).appendTo("#expences_wrapper .col-sm-6:eq(0)");
+        var tableTools = new $.fn.dataTable.TableTools(table, {
+            sRowSelect: "os",
+            sRowSelector: "td:first-child",
+            aButtons: [
+                { sExtends: "editor_create", editor: editor },
+                { sExtends: "editor_edit", editor: editor },
+                { sExtends: "editor_remove", editor: editor }
+            ]
+        });
 
-    viewModel.expenses.subscribe(function (addedItem) {
-        table.row.add(modelToData(addedItem)).draw();
-    }, null, "add");
+        $(tableTools.fnContainer()).appendTo("#expences_wrapper .col-sm-6:eq(0)");
 
-    viewModel.expenses.subscribe(function (removedItem) {
-        var rowIdx = table.column(1).data().indexOf(removedItem.id);
-        table.row(rowIdx).remove().draw();
-    }, null, "remove");
-}
+        viewModel.expenses.subscribe(function(addedItem) {
+            table.row.add(modelToData(addedItem)).draw();
+        }, null, "add");
 
+        viewModel.expenses.subscribe(function(removedItem) {
+            var rowIdx = table.column(1).data().indexOf(removedItem.id);
+            table.row(rowIdx).remove().draw();
+        }, null, "remove");
+    }
+})(window);
