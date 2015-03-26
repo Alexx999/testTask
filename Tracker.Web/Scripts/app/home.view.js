@@ -114,6 +114,10 @@
             deferRender: true,
             lengthChange: false,
             pageLength: 25,
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search"
+            },
             columns: [
                 { data: null, defaultContent: "", orderable: false },
                 { data: "expenseId" },
