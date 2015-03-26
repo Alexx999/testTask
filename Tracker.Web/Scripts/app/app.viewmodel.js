@@ -16,10 +16,14 @@
     };
     self.dataModel = dataModel;
 
+    self.expenses = ko.betterObservableArray();
+
+    self.isLoaded = ko.observable(false);
+
     // UI state
     self.view = ko.observable(self.Views.Loading);
 
-    self.loading = ko.computed(function () {
+    self.isLoading = ko.pureComputed(function () {
         return self.view() === self.Views.Loading;
     });
 
@@ -31,6 +35,10 @@
     self.addViewModel = function (options) {
         var viewItem = new options.factory(self, dataModel),
             navigator;
+
+        self["is" + options.name] = ko.pureComputed(function () {
+            return self.view() === self.Views[options.name];
+        });
 
         // Add view to AppViewModel.Views enum (for example, app.Views.Home).
         self.Views[options.name] = viewItem;
@@ -69,6 +77,34 @@
 
     self.initialize = function () {
         Sammy().run();
+
+        self.simpleAjax(self.dataModel.userExpensesUrl, "GET", undefined,
+            function (data) {
+                self.expenses.setValue(data);
+                self.isLoaded(true);
+            });
+    }
+
+    self.simpleAjax = function (url, method, data, success, error) {
+        $.ajax({
+            method: method,
+            url: url,
+            contentType: "application/json; charset=utf-8",
+            data: data,
+            headers: {
+                'Authorization': 'Bearer ' + self.dataModel.getAccessToken()
+            },
+            success: function (data) {
+                if (success != null) {
+                    success(data);
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                if (error != null) {
+                    error(jqXHR.responseJSON);
+                }
+            }
+        });
     }
 }
 

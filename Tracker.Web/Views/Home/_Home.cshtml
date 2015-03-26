@@ -1,5 +1,4 @@
-﻿<!-- ko with: home -->
-<style type="text/css">
+﻿<style type="text/css">
     table.dataTable tr td:first-child {
         text-align: center;
     }
@@ -21,9 +20,9 @@
         margin-top: 10px;
     }
 
-    .ui-datepicker { z-index: 1050 !important;}
+    .ui-datepicker { z-index: 1050 !important; }
 
-    div[class=DTE_Inline_Field]  input {
+    div[class=DTE_Inline_Field] input {
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
     }
@@ -49,7 +48,7 @@
     }
 </style>
 
-<div class="row spacer">
+<div style="display: none" data-bind="with: home, visible: isHome() && isLoaded()" class="row spacer">
     <table id="expences" class="table table-striped table-bordered" cellspacing="0" width="100%">
         <thead>
             <tr>
@@ -76,4 +75,68 @@
         </tfoot>
     </table>
 </div>
-<!-- /ko -->
+
+<div style="display: none;" data-bind="with: print, visible: isPrint() && isLoaded()" class="row spacer">
+    <div class="date-form">
+        <div class="form-horizontal">
+            <div class="control-group">
+                <label for="date-picker-start" class="control-label">Start Date:</label>
+                <div class="controls">
+                    <div class="input-group">
+                        <label for="date-picker-start" class="input-group-addon btn">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </label>
+                        <input id="date-picker-start" type="text" class="date-picker form-control" data-bind="value: start"/>
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="date-picker-end" class="control-label">End Date:</label>
+                <div class="controls">
+                    <div class="input-group">
+                        <label for="date-picker-end" class="input-group-addon btn">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </label>
+                        <input id="date-picker-end" type="text" class="date-picker form-control" data-bind="value: end" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <span class="btn btn-default spacer" data-bind="visible:!pickerVisible(), click:showPicker">Show week picker</span>
+        <span class="btn btn-default spacer" data-bind="visible:pickerVisible, click:hidePicker">Hide week picker</span>
+    </div>
+    <div id="week-picker" style="display: none; position: fixed; z-index: 999" data-bind="visible:pickerVisible">
+
+    </div>
+    <table id="print" class="table table-striped table-bordered spacer" cellspacing="0" width="100%" data-bind="visible: datesValid">
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Comment</th>
+        </tr>
+        </thead>
+
+        <tfoot>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Comment</th>
+        </tr>
+        </tfoot>
+
+        <tbody data-bind="foreach: items">
+        <tr>
+            <td data-bind="text:dateOnly"></td>
+            <td data-bind="text:time"></td>
+            <td data-bind="text:description"></td>
+            <td data-bind="text:amount"></td>
+            <td data-bind="text:comment"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>

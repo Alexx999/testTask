@@ -1,14 +1,15 @@
 ﻿"use strict";
+var initialized = false;
 function RunHomeView(viewModel, dataModel) {
     var self = this;
-    var dateFormat = "YYYY-MM-DD";
-    var timeFormat = "HH:mm";
+    if (initialized) return;
+    initialized = true;
 
     function modelToData(model) {
         var data = _.extendOwn({}, model);
         var m = moment.utc(data.date);
-        data.date = m.format(dateFormat);
-        data.time = m.format(timeFormat);
+        data.date = m.format(dataModel.dateFormat);
+        data.time = m.format(dataModel.timeFormat);
         return data;
     }
 
@@ -79,7 +80,7 @@ function RunHomeView(viewModel, dataModel) {
                 name: "time",
                 type: "time",
                 opts: {
-                    timeFormat: timeFormat,
+                    timeFormat: dataModel.timeFormat,
                     showSecond: false,
                     showTimezone: false,
                     addSliderAccess: true,

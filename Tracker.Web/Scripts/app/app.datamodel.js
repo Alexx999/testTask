@@ -12,6 +12,8 @@
 
     // Data
     self.returnUrl = self.siteUrl;
+    self.dateFormat = "YYYY-MM-DD";
+    self.timeFormat = "HH:mm";
 
     // Data access operations
     self.setAccessToken = function (accessToken) {
