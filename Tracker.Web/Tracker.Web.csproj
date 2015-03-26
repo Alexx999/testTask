@@ -237,6 +237,9 @@
       <DependentUpon>dataTables.editor.min.js</DependentUpon>
     </Content>
     <Content Include="Scripts\app\print.viewmodel.js" />
+    <Content Include="Scripts\dataTables.bootstrap.min.js.map">
+      <DependentUpon>dataTables.bootstrap.min.js</DependentUpon>
+    </Content>
     <None Include="Scripts\jquery-2.1.3.intellisense.js" />
     <Content Include="Scripts\app\home.view.js" />
     <Content Include="Scripts\betterObservableArray.js" />
