@@ -738,7 +738,7 @@ namespace Tracker.Web.Tests
             var redirectResult = (RedirectToRouteResult)result;
             Assert.AreEqual("Home", redirectResult.RouteValues["controller"]);
             Assert.AreEqual("Index", redirectResult.RouteValues["action"]);
-            AuthMock.Verify(auth => auth.SignOut(), Times.Once);
+            AuthMock.Verify(auth => auth.SignOut(DefaultAuthenticationTypes.ApplicationCookie), Times.Once);
         }
 
         [TestMethod]
