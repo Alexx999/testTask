@@ -35,6 +35,19 @@
         self.items(converted);
     }
 
+    self.printDiv = function(divId) {
+        var target = $("#" + divId);
+        var targetParent = target.parent();
+        var originalContent = $('body > *');
+        originalContent.detach();
+        $('body').append(target);
+
+        window.print();
+
+        $('body').append(originalContent);
+        targetParent.append(target);
+    }
+
     self.startDate = ko.observable();
     self.endDate = ko.observable();
 
@@ -91,6 +104,14 @@
     });
     
     self.items = ko.observableArray([]);
+
+    self.total = ko.pureComputed(function() {
+        return _.reduce(self.items(), function (memo, item) { return memo + item.amount; }, 0);
+    });
+
+    self.average = ko.pureComputed(function() {
+        return (self.total() / self.items().length).toFixed(2);
+    });
     
     self.startDate.subscribe(function() {
         dateChanged();
