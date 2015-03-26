@@ -148,8 +148,8 @@ namespace Tracker.Web.Controllers.API
                 return NotFound();
             }
 
-            _context.Expenses.Remove(expense);
-            await _context.SaveChangesAsync();
+            Context.Expenses.Remove(expense);
+            await Context.SaveChangesAsync();
 
             return Ok(expense);
         }

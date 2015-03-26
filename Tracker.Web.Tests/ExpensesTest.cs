@@ -5,9 +5,11 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Http;
 using System.Web.Http.Results;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
@@ -50,11 +52,11 @@ namespace Tracker.Web.Tests
 
             _mockContext = new Mock<ApplicationDbContext>();
 
-            _mockContext.Setup(c => c.Expenses).Returns(mockSet); 
+            _mockContext.Setup(c => c.Expenses).Returns(mockSet);
 
             _context = _mockContext.Object;
 
-            _controller = new ExpensesController(UserManager, _context);
+            _controller = new ExpensesController();
             SetupControllerForTests(_controller);
         }
 
@@ -71,8 +73,6 @@ namespace Tracker.Web.Tests
         {
             var controller = new ExpensesController();
             SetupControllerForTests(controller);
-            var owin = controller.Request.Properties["MS_OwinContext"] as OwinContext;
-            owin.Set(_context);
             Assert.AreSame(_context, controller.Context);
         }
 
@@ -310,6 +310,13 @@ namespace Tracker.Web.Tests
             var method = keyProperty.GetGetMethod();
 
             return t => method.Invoke(t, new object[0]);
+        }
+
+        protected override void SetupControllerForTests(ApiController controller)
+        {
+            base.SetupControllerForTests(controller);
+            var owin = controller.Request.GetOwinContext();
+            owin.Set(_context);
         }
 
         [TestCleanup]

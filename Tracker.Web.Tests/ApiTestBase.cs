@@ -34,7 +34,7 @@ namespace Tracker.Web.Tests
             Identity = CreateClaimsIdentity(user.Id, user.Email, user.Name);
         }
 
-        protected void SetupControllerForTests(ApiController controller)
+        protected virtual void SetupControllerForTests(ApiController controller)
         {
             var config = new HttpConfiguration();
             var request = new HttpRequestMessage(HttpMethod.Post, GetControllerPath());
@@ -51,7 +51,7 @@ namespace Tracker.Web.Tests
             controller.Request.SetConfiguration(config);
             var owinContext = new OwinContext();
             owinContext.Set(UserManager);
-            request.Properties["MS_OwinContext"] = owinContext;
+            request.SetOwinContext(owinContext);
         }
 
         public virtual void Cleanup()
