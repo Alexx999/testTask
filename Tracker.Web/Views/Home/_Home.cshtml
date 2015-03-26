@@ -128,7 +128,11 @@
             <th>Comment</th>
         </tr>
         </tfoot>
-
+        <tr data-bind="visible: items().length === 0">
+            <td colspan="5">
+                Selected date range contains no entries
+            </td>
+        </tr>
         <tbody data-bind="foreach: items">
         <tr>
             <td data-bind="text:dateOnly"></td>
