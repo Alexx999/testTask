@@ -46,6 +46,8 @@ window.common = (function () {
 
 $(document).ready(function () {
     $(".navbar-nav li a").click(function (event) {
-        $(".navbar-collapse").collapse('hide');
+        if ($(".navbar-header .navbar-toggle").css("display") !== "none") {
+            $(".navbar-collapse").collapse("hide");
+        }
     });
 });
