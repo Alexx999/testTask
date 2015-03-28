@@ -114,7 +114,11 @@
     });
 
     self.average = ko.pureComputed(function() {
-        return (self.total() / self.items().length).toFixed(2);
+        var value = self.total() / self.items().length;
+        if (isNaN(value)) {
+            return "0";
+        }
+        return value.toFixed(2);
     });
     
     self.startDate.subscribe(function() {
