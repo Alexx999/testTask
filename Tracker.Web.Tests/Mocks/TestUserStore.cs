@@ -7,10 +7,10 @@ using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace Tracker.Web.Tests.Mocks
 {
-    public class TestUserStore<TUser> : IUserStore<TUser>, IUserEmailStore<TUser>, IUserPasswordStore<TUser>, IUserLockoutStore<TUser, string>, IUserTwoFactorStore<TUser, string>, IUserPhoneNumberStore<TUser>, IUserLoginStore<TUser>, IUserSecurityStampStore<TUser> where TUser : class, IUser<string>
+    public sealed class TestUserStore<TUser> : IUserStore<TUser>, IUserEmailStore<TUser>, IUserPasswordStore<TUser>, IUserLockoutStore<TUser, string>, IUserTwoFactorStore<TUser, string>, IUserPhoneNumberStore<TUser>, IUserLoginStore<TUser>, IUserSecurityStampStore<TUser> where TUser : class, IUser<string>
     {
         private readonly Task _completedTask = Task.FromResult(false);
-        private Dictionary<string, UserData<TUser>> _data = new Dictionary<string, UserData<TUser>>(); 
+        private Dictionary<string, UserData<TUser>> _data = new Dictionary<string, UserData<TUser>>();
 
         public void Dispose()
         {

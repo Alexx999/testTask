@@ -1,8 +1,9 @@
-﻿using System.Security.Claims;
+﻿using System;
+using System.Security.Claims;
 
 namespace Tracker.Web.Tests
 {
-    public abstract class TestBase
+    public abstract class TestBase : IDisposable
     {
         protected ClaimsIdentity CreateClaimsIdentity(string userId, string userEmail, string userName)
         {
@@ -16,5 +17,16 @@ namespace Tracker.Web.Tests
 
 
         protected abstract string GetControllerPath();
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            
+        }
     }
 }
