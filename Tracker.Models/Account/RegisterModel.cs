@@ -5,7 +5,9 @@ namespace Tracker.Models.Account
     public class RegisterModel
     {
         [Required]
+#if !PORTABLE
         [EmailAddress]
+#endif
         [Display(Name = "Email")]
         public string Email { get; set; }
 
