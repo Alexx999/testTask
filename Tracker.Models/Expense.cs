@@ -17,15 +17,14 @@ namespace Tracker.Models
         public DateTime Date { get; set; }
 
         [Required]
-        [MinLength(1)]
-        [MaxLength(200)]
+        [StringLength(200, MinimumLength = 1)]
         public string Description { get; set; }
 
         [Required]
         [Range(0.0, double.MaxValue, ErrorMessage = "Ammount can't be negative")]
         public Decimal Amount { get; set; }
 
-        [MaxLength(200)]
+        [StringLength(200)]
         public string Comment { get; set; }
 
         [JsonIgnore]
