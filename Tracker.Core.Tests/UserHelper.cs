@@ -23,5 +23,15 @@ namespace Tracker.Core.Tests
                 await _userManager.DeleteAsync(user);
             }
         }
+
+        public async Task EnsureUserExists(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                user = new ApplicationUser {Name = "Test User", UserName = email, Email = email};
+                await _userManager.CreateAsync(user, TestConfig.TestUserPassword);
+            }
+        }
     }
 }

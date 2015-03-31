@@ -19,7 +19,7 @@ namespace Tracker.Core.Tests
         }
 
         [TestMethod]
-        public async Task RegisterUser()
+        public async Task RegisterUserTest()
         {
             await _helper.EnsureUserDontExist(TestConfig.TestUserEmail);
 
@@ -37,6 +37,18 @@ namespace Tracker.Core.Tests
             var user = await _helper.UserExists(TestConfig.TestUserEmail);
             Assert.IsNotNull(user);
 
+
+            await _helper.EnsureUserDontExist(TestConfig.TestUserEmail);
+        }
+
+        [TestMethod]
+        public async Task LoginTest()
+        {
+            await _helper.EnsureUserExists(TestConfig.TestUserEmail);
+
+            var result = await _serverService.Login(TestConfig.TestUserEmail, TestConfig.TestUserPassword);
+
+            Assert.IsTrue(result);
 
             await _helper.EnsureUserDontExist(TestConfig.TestUserEmail);
         }
