@@ -4,9 +4,32 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:viewModels="clr-namespace:Tracker.Core.ViewModels;assembly=Tracker.Core"
+        xmlns:extensions="clr-namespace:Tracker.WPF.Extensions"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:RegisterViewModel}"
-        Title="Register" Height="300" Width="500">
-    <Grid>
-        
-    </Grid>
+        Title="Register" Height="300" Width="500"
+        ResizeMode="CanMinimize">
+    <StackPanel extensions:MarginSetter.Margin="5" VerticalAlignment="Center">
+        <TextBlock Text="Register" HorizontalAlignment="Center"/>
+        <TextBox Text="{Binding Email}" Width="250">
+            <extensions:WatermarkService.Watermark>
+                <TextBlock>Email (will be used as login)</TextBlock>
+            </extensions:WatermarkService.Watermark>
+        </TextBox>
+        <TextBox Text="{Binding Name}" Width="250">
+            <extensions:WatermarkService.Watermark>
+                <TextBlock>Name</TextBlock>
+            </extensions:WatermarkService.Watermark>
+        </TextBox>
+        <PasswordBox Width="250" x:Name="PasswordBox">
+            <extensions:WatermarkService.Watermark>
+                <TextBlock>Password</TextBlock>
+            </extensions:WatermarkService.Watermark>
+        </PasswordBox>
+        <PasswordBox Width="250" x:Name="ConfirmPasswordBox">
+            <extensions:WatermarkService.Watermark>
+                <TextBlock>Confirm Password</TextBlock>
+            </extensions:WatermarkService.Watermark>
+        </PasswordBox>
+        <Button Content="Submit" VerticalAlignment="Top" Width="245" Click="SubmitClick"/>
+    </StackPanel>
 </Window>
