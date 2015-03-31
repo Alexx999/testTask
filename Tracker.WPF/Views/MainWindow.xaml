@@ -6,6 +6,7 @@
         xmlns:viewModels="clr-namespace:Tracker.Core.ViewModels;assembly=Tracker.Core"
         xmlns:components="clr-namespace:Tracker.WPF.Components"
         xmlns:converters="clr-namespace:Tracker.WPF.Converters"
+        xmlns:dataGridFilterLibrary="clr-namespace:DataGridFilterLibrary;assembly=DataGridFilterLibrary"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
         Title="MainWindow" Height="500" Width="800">
     <Window.Resources>
@@ -21,7 +22,13 @@
             </MenuItem>
         </Menu>
         <Grid>
-            <DataGrid ItemsSource="{Binding Expenses}" AutoGenerateColumns="False">
+            <DataGrid ItemsSource="{Binding Expenses}" AutoGenerateColumns="False" 
+                       dataGridFilterLibrary:DataGridExtensions.UseBackgroundWorkerForFiltering="False"
+                       dataGridFilterLibrary:DataGridExtensions.IsFilterVisible="True"
+                       dataGridFilterLibrary:DataGridExtensions.IsClearButtonVisible="False"
+                       ColumnHeaderStyle="{StaticResource {ComponentResourceKey 
+		                       TypeInTargetAssembly={x:Type dataGridFilterLibrary:DataGridHeaderFilterControl}, 
+		                       ResourceId=DataGridHeaderFilterControlStyle}}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Date, Converter={StaticResource DateToString}}" Header="Date"/>
                     <DataGridTextColumn Binding="{Binding Time, Converter={StaticResource TimeToString}}" Header="Time"/>
@@ -33,4 +40,8 @@
             <components:CircularProgressBar Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"/>
         </Grid>
     </DockPanel>
+
+    <Window.InputBindings>
+        <KeyBinding Key="F4" Modifiers="Alt" Command="{Binding CloseCommand}"/>
+    </Window.InputBindings>
 </Window>

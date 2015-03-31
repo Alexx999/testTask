@@ -27,5 +27,14 @@ namespace Tracker.Core.ViewModels
             Expenses.AddRange(expenses.Select(e => new ExpenseViewModel(e)));
             EndBusy(id);
         }
+
+        protected override void OnDispose(bool disposing)
+        {
+            base.OnDispose(disposing);
+            if (disposing)
+            {
+                Expenses.ForEach(e => e.Dispose());
+            }
+        }
     }
 }

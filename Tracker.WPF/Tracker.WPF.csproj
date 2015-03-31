@@ -144,6 +144,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\3rd Party\DataGridFilterLibrary\DataGridFilterLibrary.csproj">
+      <Project>{512fd53f-9ad1-46a1-a961-9fabdfad50c5}</Project>
+      <Name>DataGridFilterLibrary</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Tracker.Core\Tracker.Core.csproj">
       <Project>{ec815267-7254-4477-a6a9-0cf13579c7f8}</Project>
       <Name>Tracker.Core</Name>
