@@ -2,7 +2,7 @@
 
 namespace Tracker.Core.ViewModels
 {
-    public class MainViewModel : ViewModelBase
+    public class MainViewModel : CloseableViewModel
     {
     }
 }

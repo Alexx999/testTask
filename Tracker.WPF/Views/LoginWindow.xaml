@@ -5,11 +5,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:viewModels="clr-namespace:Tracker.Core.ViewModels;assembly=Tracker.Core"
         xmlns:extensions="clr-namespace:Tracker.WPF.Extensions"
-        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:components="clr-namespace:Tracker.WPF.Components"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:LoginViewModel}"
         Title="Login" Height="300" Width="500"
-        ResizeMode="CanMinimize">
+        ResizeMode="NoResize">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
     </Window.Resources>

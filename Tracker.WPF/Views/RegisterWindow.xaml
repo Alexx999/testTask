@@ -8,7 +8,7 @@
         xmlns:components="clr-namespace:Tracker.WPF.Components"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:RegisterViewModel}"
         Title="Register" Height="300" Width="500"
-        ResizeMode="CanMinimize">
+        ResizeMode="NoResize">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
     </Window.Resources>

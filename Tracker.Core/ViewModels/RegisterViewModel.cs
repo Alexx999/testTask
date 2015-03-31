@@ -38,6 +38,11 @@ namespace Tracker.Core.ViewModels
         public RegisterViewModel()
         {
             RegisterCommand = new RelayCommand<string>(Register);
+            Closing += (sender, args) =>
+            {
+                var viewModel = GetViewModel<LoginViewModel>();
+                viewModel.ShowAsync(NavigationConstants.IsDialog.ToValue(false));
+            };
         }
 
         private async void Register(string password)
@@ -47,8 +52,6 @@ namespace Tracker.Core.ViewModels
             var server = IocContainer.Get<IServerService>();
             if (await server.Register(new RegisterModel{Email = Email, Name = Name, Password = password}))
             {
-                var viewModel = GetViewModel<LoginViewModel>();
-                viewModel.ShowAsync(NavigationConstants.IsDialog.ToValue(false));
                 await CloseAsync(null);
                 return;
             }
