@@ -6,22 +6,34 @@
         xmlns:viewModels="clr-namespace:Tracker.Core.ViewModels;assembly=Tracker.Core"
         xmlns:extensions="clr-namespace:Tracker.WPF.Extensions"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:components="clr-namespace:Tracker.WPF.Components"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:LoginViewModel}"
         Title="Login" Height="300" Width="500"
         ResizeMode="CanMinimize">
-    <StackPanel extensions:MarginSetter.Margin="5" VerticalAlignment="Center">
-        <TextBlock Text="Log In" HorizontalAlignment="Center"/>
-        <TextBox Text="{Binding UserName}" Width="250">
-            <extensions:WatermarkService.Watermark>
-                <TextBlock>Email</TextBlock>
-            </extensions:WatermarkService.Watermark>
-        </TextBox>
-        <PasswordBox Width="250" x:Name="PasswordBox">
-            <extensions:WatermarkService.Watermark>
-                <TextBlock>Password</TextBlock>
-            </extensions:WatermarkService.Watermark>
-        </PasswordBox>
-        <Button Content="Log In" VerticalAlignment="Top" Width="245" Click="LoginClick"/>
-        <Button Content="Register" Command="{Binding RegisterCommand}" VerticalAlignment="Top" Width="245"/>
-    </StackPanel>
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+    </Window.Resources>
+    <Grid>
+        <StackPanel extensions:MarginSetter.Margin="5" VerticalAlignment="Center">
+            <TextBlock Text="Log In" HorizontalAlignment="Center"/>
+            <TextBox Text="{Binding UserName}" Width="250">
+                <extensions:WatermarkService.Watermark>
+                    <TextBlock>Email</TextBlock>
+                </extensions:WatermarkService.Watermark>
+            </TextBox>
+            <PasswordBox Width="250" x:Name="PasswordBox">
+                <extensions:WatermarkService.Watermark>
+                    <TextBlock>Password</TextBlock>
+                </extensions:WatermarkService.Watermark>
+            </PasswordBox>
+            <Button Content="Log In" VerticalAlignment="Top" Width="245" Click="LoginClick"/>
+            <Button Content="Register" Command="{Binding RegisterCommand}" VerticalAlignment="Top" Width="245"/>
+        </StackPanel>
+
+        <Viewbox Width="60" Height="60" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            <components:CircularProgressBar/>
+        </Viewbox>
+    </Grid>
 </Window>
