@@ -11,24 +11,17 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Tracker.Core.ViewModels;
 
 namespace Tracker.WPF.Views
 {
     /// <summary>
-    /// Interaction logic for LoginWindow.xaml
+    /// Interaction logic for RegisterWindow.xaml
     /// </summary>
-    public partial class LoginWindow : Window
+    public partial class RegisterWindow : Window
     {
-        public LoginWindow()
+        public RegisterWindow()
         {
             InitializeComponent();
-        }
-
-        private void LoginClick(object sender, RoutedEventArgs e)
-        {
-            var vm = DataContext as LoginViewModel;
-            vm.LoginCommand.Execute(PasswordBox.Password);
         }
     }
 }

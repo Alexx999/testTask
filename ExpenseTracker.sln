@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tracker.Models", "Tracker.M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tracker.WPF", "Tracker.WPF\Tracker.WPF.csproj", "{02F228F5-A55E-4E57-8654-43A34FDA07AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tracker.ViewModels", "Tracker.ViewModels\Tracker.ViewModels.csproj", "{EC815267-7254-4477-A6A9-0CF13579C7F8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tracker.Core", "Tracker.Core\Tracker.Core.csproj", "{EC815267-7254-4477-A6A9-0CF13579C7F8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tracker.Models.Portable", "Tracker.Models.Portable\Tracker.Models.Portable.csproj", "{C12ECF2E-9F43-4569-BB73-3214BA771E8E}"
 EndProject

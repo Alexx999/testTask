@@ -68,6 +68,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Extensions\EventToCommand.cs" />
     <Compile Include="Extensions\MarginSetter.cs" />
     <Compile Include="Extensions\WatermarkAdorner.cs" />
     <Compile Include="Extensions\WatermarkService.cs" />
@@ -81,11 +82,18 @@
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\RegisterWindow.xaml.cs">
+      <DependentUpon>RegisterWindow.xaml</DependentUpon>
+    </Compile>
     <Page Include="Views\LoginWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\MainWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\RegisterWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -121,9 +129,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Tracker.ViewModels\Tracker.ViewModels.csproj">
+    <ProjectReference Include="..\Tracker.Core\Tracker.Core.csproj">
       <Project>{ec815267-7254-4477-a6a9-0cf13579c7f8}</Project>
-      <Name>Tracker.ViewModels</Name>
+      <Name>Tracker.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

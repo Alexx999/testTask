@@ -1,13 +1,13 @@
 ﻿using System.Windows.Input;
+using MugenMvvmToolkit.DataConstants;
 using MugenMvvmToolkit.Models;
 using MugenMvvmToolkit.ViewModels;
 
-namespace Tracker.Portable.ViewModels
+namespace Tracker.Core.ViewModels
 {
     public class LoginViewModel : CloseableViewModel
     {
         private string _userName;
-        private string _password;
 
         public ICommand LoginCommand { get; private set; }
         public ICommand RegisterCommand { get; private set; }
@@ -22,32 +22,24 @@ namespace Tracker.Portable.ViewModels
             }
         }
 
-        public string Password
-        {
-            get { return _password; }
-            set
-            {
-                _password = value;
-                OnPropertyChanged();
-            }
-        }
-
         public LoginViewModel()
         {
-            LoginCommand = new RelayCommand(Login);
-            LoginCommand = new RelayCommand(Register);
+            LoginCommand = new RelayCommand<string>(Login);
+            RegisterCommand = new RelayCommand(Register);
         }
 
-        private void Login()
+        private void Login(string password)
         {
             var viewModel = GetViewModel<MainViewModel>();
-            viewModel.ShowAsync();
+            viewModel.ShowAsync(NavigationConstants.IsDialog.ToValue(false));
+            CloseAsync(null);
         }
 
         private void Register()
         {
             var viewModel = GetViewModel<RegisterViewModel>();
-            viewModel.ShowAsync();
+            viewModel.ShowAsync(NavigationConstants.IsDialog.ToValue(false));
+            CloseAsync(null);
         }
 
     }

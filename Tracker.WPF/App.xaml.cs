@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using MugenMvvmToolkit;
 using MugenMvvmToolkit.Infrastructure;
-using Tracker.Portable.ViewModels;
+using Tracker.Core.ViewModels;
 
 namespace Tracker.WPF
 {
