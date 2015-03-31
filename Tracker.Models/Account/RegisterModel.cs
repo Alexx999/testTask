@@ -7,6 +7,8 @@ namespace Tracker.Models.Account
         [Required]
 #if !PORTABLE
         [EmailAddress]
+#else
+        [DataType(DataType.EmailAddress)]
 #endif
         [Display(Name = "Email")]
         public string Email { get; set; }
