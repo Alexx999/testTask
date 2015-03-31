@@ -81,6 +81,11 @@
       <Project>{C12ECF2E-9F43-4569-BB73-3214BA771E8E}</Project>
       <Name>Tracker.Models.Portable</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Tracker.Models\Tracker.Models.csproj">
+      <Project>{5D4F43FF-8CBF-485E-BDCE-3A2C40D12307}</Project>
+      <Name>Tracker.Models</Name>
+      <Aliases>ModelsFull</Aliases>
+    </ProjectReference>
     <ProjectReference Include="..\Tracker.Web\Tracker.Web.csproj">
       <Project>{1CC077D0-499D-4273-A75A-E00E90105985}</Project>
       <Name>Tracker.Web</Name>

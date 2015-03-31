@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Tracker.Models;
 using Tracker.Models.Account;
 
 namespace Tracker.Core.Services
@@ -16,7 +17,7 @@ namespace Tracker.Core.Services
         private const string Json = "application/json; charset=utf-8";
         private const string UrlEncoded = "application/x-www-form-urlencoded; charset=utf-8";
         private readonly string _url;
-        private string _token;
+        private string _authorization;
 
         public ServerService(string url)
         {
@@ -28,7 +29,7 @@ namespace Tracker.Core.Services
             var request = SendRequest("api/Account", "POST", JsonConvert.SerializeObject(model), Json);
             using (var response = await request)
             {
-                return response.StatusCode == HttpStatusCode.OK;
+                return response.Success;
             }
         }
 
@@ -39,42 +40,98 @@ namespace Tracker.Core.Services
             sb.Append("&password=");
             sb.Append(password);
             var request = SendRequest("Token", "POST", sb.ToString(), UrlEncoded);
-            try
+            using (var result = await request)
             {
-                using (var response = await request)
-                {
-                    if (response.StatusCode != HttpStatusCode.OK) return false;
+                if (!result.Success) return false;
+                var response = result.Response;
 
-                    var data = await new StreamReader(response.GetResponseStream()).ReadToEndAsync();
-                    var obj = JObject.Parse(data);
-                    JToken token;
-                    if (!obj.TryGetValue("access_token", out token)) return false;
-                    _token = token.ToObject<string>();
-                    return true;
+                string data;
+                using (var stream = response.GetResponseStream())
+                {
+                    data = await new StreamReader(stream).ReadToEndAsync();
                 }
-            }
-            catch (WebException ex)
-            {
-                
-                throw;
+
+                var obj = JObject.Parse(data);
+                JToken token;
+                if (!obj.TryGetValue("access_token", out token)) return false;
+                var key = token.ToObject<string>();
+                _authorization = "Bearer " + key;
+                return true;
             }
         }
 
-        private async Task<HttpWebResponse> SendRequest(string endpoint, string method, string postData, string contentType)
+        public async Task<List<Expense>> GetExpenses()
+        {
+            if (_authorization == null)
+            {
+                throw new InvalidOperationException("Must login successfully before getting data");
+            }
+            var request = SendRequest("api/Expenses", "GET", null, Json);
+            using (var result = await request)
+            {
+                if (!result.Success) return null;
+                var response = result.Response;
+
+                string data;
+                using (var stream = response.GetResponseStream())
+                {
+                    data = await new StreamReader(stream).ReadToEndAsync();
+                }
+
+                return JsonConvert.DeserializeObject<List<Expense>>(data);
+            }
+        }
+
+        private async Task<HttpResult> SendRequest(string endpoint, string method, string postData, string contentType)
         {
             var url = _url + endpoint;
             var request = WebRequest.CreateHttp(url);
             request.Method = method;
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(postData);
             request.ContentType = contentType;
+            request.Headers[HttpRequestHeader.Authorization] = _authorization;
 
-            using (var dataStream = await request.GetRequestStreamAsync())
+            if (postData != null)
             {
-                dataStream.Write(byteArray, 0, byteArray.Length);
+                byte[] byteArray = Encoding.UTF8.GetBytes(postData);
+
+                using (var dataStream = await request.GetRequestStreamAsync())
+                {
+                    dataStream.Write(byteArray, 0, byteArray.Length);
+                }
             }
 
-            return (HttpWebResponse) await request.GetResponseAsync();
+            HttpWebResponse result;
+            var success = false;
+            try
+            {
+                result = (HttpWebResponse)await request.GetResponseAsync();
+                success = true;
+            }
+            catch (WebException ex)
+            {
+                result = (HttpWebResponse)ex.Response;
+            }
+            return new HttpResult(result, success);
+        }
+
+        private struct HttpResult : IDisposable
+        {
+            public bool Success;
+            public HttpWebResponse Response;
+
+            public HttpResult(HttpWebResponse response, bool success)
+            {
+                Success = success;
+                Response = response;
+            }
+
+            public void Dispose()
+            {
+                if (Response != null)
+                {
+                    Response.Dispose();
+                }
+            }
         }
     }
 
