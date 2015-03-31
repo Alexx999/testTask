@@ -48,6 +48,10 @@
     <Reference Include="MugenMvvmToolkit.WPF">
       <HintPath>..\packages\MugenMvvmToolkit.WPF.3.3.0\lib\net45\MugenMvvmToolkit.WPF.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
@@ -72,6 +76,7 @@
     <Compile Include="Extensions\MarginSetter.cs" />
     <Compile Include="Extensions\WatermarkAdorner.cs" />
     <Compile Include="Extensions\WatermarkService.cs" />
+    <Compile Include="Services\DialogService.cs" />
     <Compile Include="Views\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
