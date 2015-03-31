@@ -30,10 +30,6 @@
             <Button Content="Register" Command="{Binding RegisterCommand}" VerticalAlignment="Top" Width="245"/>
         </StackPanel>
 
-        <Viewbox Width="60" Height="60" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center">
-            <components:CircularProgressBar/>
-        </Viewbox>
+        <components:CircularProgressBar Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"/>
     </Grid>
 </Window>

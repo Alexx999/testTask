@@ -37,10 +37,6 @@
             </PasswordBox>
             <Button Content="Submit" VerticalAlignment="Top" Width="245" Click="SubmitClick"/>
         </StackPanel>
-        <Viewbox Width="60" Height="60" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center">
-            <components:CircularProgressBar/>
-        </Viewbox>
+        <components:CircularProgressBar Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"/>
     </Grid>
 </Window>
