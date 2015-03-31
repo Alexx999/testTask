@@ -1,7 +1,9 @@
 ﻿using System.Windows.Input;
+using MugenMvvmToolkit;
 using MugenMvvmToolkit.DataConstants;
 using MugenMvvmToolkit.Models;
 using MugenMvvmToolkit.ViewModels;
+using Tracker.Core.Services;
 
 namespace Tracker.Core.ViewModels
 {
@@ -28,11 +30,21 @@ namespace Tracker.Core.ViewModels
             RegisterCommand = new RelayCommand(Register);
         }
 
-        private void Login(string password)
+        private async void Login(string password)
         {
-            var viewModel = GetViewModel<MainViewModel>();
-            viewModel.ShowAsync(NavigationConstants.IsDialog.ToValue(false));
-            CloseAsync(null);
+            if(IsBusy) return;
+            var id = BeginBusy();
+            var server = IocContainer.Get<IServerService>();
+            if (await server.Login(UserName, password))
+            {
+                var viewModel = GetViewModel<MainViewModel>();
+                viewModel.ShowAsync(NavigationConstants.IsDialog.ToValue(false));
+                await CloseAsync(null);
+                return;
+            }
+            var dialogService = IocContainer.Get<IDialogService>();
+            await dialogService.ShowMessage("Login failed");
+            EndBusy(id);
         }
 
         private void Register()

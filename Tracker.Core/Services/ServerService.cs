@@ -24,7 +24,7 @@ namespace Tracker.Core.Services
             _url = url;
         }
 
-        public async Task<bool> RegisterUser(RegisterModel model)
+        public async Task<bool> Register(RegisterModel model)
         {
             var request = SendRequest("api/Account", "POST", JsonConvert.SerializeObject(model), Json);
             using (var response = await request)
@@ -133,10 +133,5 @@ namespace Tracker.Core.Services
                 }
             }
         }
-    }
-
-    public interface IServerService
-    {
-        Task<bool> RegisterUser(RegisterModel model);
     }
 }

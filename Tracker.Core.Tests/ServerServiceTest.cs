@@ -31,7 +31,7 @@ namespace Tracker.Core.Tests
                 Name = "Test User"
             };
 
-            var result = await _serverService.RegisterUser(model);
+            var result = await _serverService.Register(model);
 
             Assert.IsTrue(result);
 

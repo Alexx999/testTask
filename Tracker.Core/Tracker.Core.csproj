@@ -35,6 +35,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\IDialogService.cs" />
+    <Compile Include="Services\IServerService.cs" />
     <Compile Include="Services\ServerService.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
