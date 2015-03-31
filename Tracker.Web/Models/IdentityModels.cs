@@ -51,5 +51,12 @@ namespace Tracker.Web.Models
             // Add custom user claims here
             return userIdentity;
         }
+
+        public static async Task<ClaimsIdentity> GenerateUserIdentityAsync(this ApplicationUser user, UserManager<ApplicationUser> manager, string authenticationType)
+        {
+            var userIdentity = await manager.CreateIdentityAsync(user, authenticationType);
+            // Add custom user claims here
+            return userIdentity;
+        }
     }
 }

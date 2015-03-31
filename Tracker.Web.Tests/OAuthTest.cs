@@ -74,6 +74,26 @@ namespace Tracker.Web.Tests
         }
 
         [TestMethod]
+        public void TestValidateFail3()
+        {
+            var provider = new ApplicationOAuthProvider("1");
+            var dict = new Dictionary<string, object>()
+            {
+                {"owin.RequestScheme", "http"},
+                {"Host", "localhost"},
+                {"owin.RequestPathBase", "/"},
+                {"owin.RequestPath", ""},
+                {"owin.RequestQueryString", ""},
+                {"owin.RequestHeaders", new Dictionary<string, string[]>()}
+            };
+
+            var context = new OAuthValidateClientRedirectUriContext(new OwinContext(dict),
+                new OAuthAuthorizationServerOptions(), "1", "");
+            provider.ValidateClientRedirectUri(context);
+            Assert.IsFalse(context.IsValidated);
+        }
+
+        [TestMethod]
         public void TestValidateSuccess()
         {
             var provider = new ApplicationOAuthProvider("1");
@@ -89,6 +109,26 @@ namespace Tracker.Web.Tests
 
             var context = new OAuthValidateClientRedirectUriContext(new OwinContext(dict),
                 new OAuthAuthorizationServerOptions(), "1", "http://localhost/");
+            provider.ValidateClientRedirectUri(context);
+            Assert.IsTrue(context.IsValidated);
+        }
+
+        [TestMethod]
+        public void TestValidateWeb()
+        {
+            var provider = new ApplicationOAuthProvider("web");
+            var dict = new Dictionary<string, object>()
+            {
+                {"owin.RequestScheme", "http"},
+                {"Host", "localhost"},
+                {"owin.RequestPathBase", "/"},
+                {"owin.RequestPath", ""},
+                {"owin.RequestQueryString", ""},
+                {"owin.RequestHeaders", new Dictionary<string, string[]>()}
+            };
+
+            var context = new OAuthValidateClientRedirectUriContext(new OwinContext(dict),
+                new OAuthAuthorizationServerOptions(), "web", "");
             provider.ValidateClientRedirectUri(context);
             Assert.IsTrue(context.IsValidated);
         }
