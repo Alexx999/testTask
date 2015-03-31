@@ -153,14 +153,12 @@
     <Compile Include="AccountApiTest.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="TestConfig.cs" />
-    <Compile Include="AccountApiIntegrationTest.cs" />
     <Compile Include="HomeTest.cs" />
     <Compile Include="AccountTest.cs" />
     <Compile Include="Mocks\TestIdentityResult.cs" />
     <Compile Include="Mocks\TestDataProtection.cs" />
     <Compile Include="ManageTest.cs" />
     <Compile Include="OAuthTest.cs" />
-    <Compile Include="ExpenseApiIntegrationTest.cs" />
     <Compile Include="ExpensesTest.cs" />
   </ItemGroup>
   <ItemGroup>
