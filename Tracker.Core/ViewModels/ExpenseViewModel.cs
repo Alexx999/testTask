@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using MugenMvvmToolkit.ViewModels;
 using Tracker.Models;
+using Tracker.Models.Account;
 
 namespace Tracker.Core.ViewModels
 {
@@ -11,10 +14,12 @@ namespace Tracker.Core.ViewModels
         public ExpenseViewModel(Expense model)
         {
             _model = model;
+            IsCreated = true;
         }
 
         public ExpenseViewModel():this(new Expense())
         {
+            IsCreated = false;
         }
 
         public DateTime Time
@@ -85,5 +90,28 @@ namespace Tracker.Core.ViewModels
                 OnPropertyChanged();
             }
         }
+
+        public Expense Model
+        {
+            get { return _model; }
+            set
+            {
+                _model = value;
+                OnPropertyChanged("");
+            }
+        }
+
+        public bool IsValid
+        {
+            get { return Validate(_model); }
+        }
+
+        private static bool Validate(Expense model)
+        {
+            var context = new ValidationContext(model);
+            return Validator.TryValidateObject(model, context, null, true);
+        }
+
+        public bool IsCreated { get; set; }
     }
 }

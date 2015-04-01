@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -79,6 +80,51 @@ namespace Tracker.Core.Services
                 }
 
                 return JsonConvert.DeserializeObject<List<Expense>>(data);
+            }
+        }
+
+        public async Task<Expense> CreateExpense(Expense model)
+        {
+            var request = SendRequest("api/Expenses", "POST", JsonConvert.SerializeObject(model), Json);
+            using (var result = await request)
+            {
+                if (!result.Success) return null;
+                var response = result.Response;
+
+                string data;
+                using (var stream = response.GetResponseStream())
+                {
+                    data = await new StreamReader(stream).ReadToEndAsync();
+                }
+
+                return JsonConvert.DeserializeObject<Expense>(data);
+            }
+        }
+
+        public async Task<Expense> RemoveExpense(Guid targetGuid)
+        {
+            var request = SendRequest("api/Expenses/" + targetGuid.ToString(), "DELETE", null, Json);
+            using (var result = await request)
+            {
+                if (!result.Success) return null;
+                var response = result.Response;
+
+                string data;
+                using (var stream = response.GetResponseStream())
+                {
+                    data = await new StreamReader(stream).ReadToEndAsync();
+                }
+
+                return JsonConvert.DeserializeObject<Expense>(data);
+            }
+        }
+
+        public async Task<bool> UpdateExpense(Expense target)
+        {
+            var request = SendRequest("api/Expenses/" + target.ExpenseId.ToString(), "PUT", JsonConvert.SerializeObject(target), Json);
+            using (var result = await request)
+            {
+                return result.Success;
             }
         }
 

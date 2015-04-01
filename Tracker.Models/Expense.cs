@@ -9,11 +9,14 @@ namespace Tracker.Models
         public Expense()
         {
             ExpenseId = Guid.NewGuid();
+            //Make it fit into DATETIME SQL type by default
+            Date = new DateTime(1753, 1, 1);
         }
 
         [Key]
         public Guid ExpenseId { get; set; }
 
+        [CustomValidation(typeof(Expense), "ValidateDate")]
         public DateTime Date { get; set; }
 
         [Required]
@@ -29,5 +32,14 @@ namespace Tracker.Models
 
         [JsonIgnore]
         public string ApplicationUserID { get; set; }
+
+        public static ValidationResult ValidateDate(DateTime date)
+        {
+            if (date.Year >= 1753)
+            {
+                return ValidationResult.Success;
+            }
+            return new ValidationResult("Date invalid");
+        }
     }
 }
