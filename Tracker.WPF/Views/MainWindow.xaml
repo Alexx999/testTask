@@ -18,6 +18,7 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
+                <MenuItem Header="_Print" InputGestureText="Ctrl-P" Command="{Binding NavigateToPrint}"/>
                 <MenuItem Header="_Exit" InputGestureText="Alt-F4" Command="{Binding CloseCommand}"/>
             </MenuItem>
         </Menu>
@@ -43,5 +44,6 @@
 
     <Window.InputBindings>
         <KeyBinding Key="F4" Modifiers="Alt" Command="{Binding CloseCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding NavigateToPrint}"/>
     </Window.InputBindings>
 </Window>

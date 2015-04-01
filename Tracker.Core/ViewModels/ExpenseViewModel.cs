@@ -34,6 +34,7 @@ namespace Tracker.Core.ViewModels
                 var newDate = new DateTime(date.Year, date.Month, date.Day, value.Hour, value.Minute, value.Second);
                 _model.Date = newDate;
                 OnPropertyChanged();
+                IsDirty = true;
             }
         }
 
@@ -49,6 +50,7 @@ namespace Tracker.Core.ViewModels
                 _model.Date = value;
                 Time = time;
                 OnPropertyChanged();
+                IsDirty = true;
             }
         }
 
@@ -62,6 +64,7 @@ namespace Tracker.Core.ViewModels
             {
                 _model.Description = value;
                 OnPropertyChanged();
+                IsDirty = true;
             }
         }
 
@@ -75,6 +78,7 @@ namespace Tracker.Core.ViewModels
             {
                 _model.Amount = value;
                 OnPropertyChanged();
+                IsDirty = true;
             }
         }
 
@@ -88,6 +92,7 @@ namespace Tracker.Core.ViewModels
             {
                 _model.Comment = value;
                 OnPropertyChanged();
+                IsDirty = true;
             }
         }
 
@@ -113,5 +118,7 @@ namespace Tracker.Core.ViewModels
         }
 
         public bool IsCreated { get; set; }
+        public bool IsPending { get; set; }
+        public bool IsDirty { get; set; }
     }
 }

@@ -16,7 +16,7 @@ namespace Tracker.WPF.Converters
         {
             decimal amount = (decimal)value;
 
-            return amount.ToString(culture);
+            return amount.ToString("C", culture);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

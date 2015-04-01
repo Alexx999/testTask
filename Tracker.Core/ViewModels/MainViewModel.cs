@@ -1,38 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using MugenMvvmToolkit;
+using MugenMvvmToolkit.Models;
 using MugenMvvmToolkit.ViewModels;
 using Tracker.Core.Services;
-using Tracker.Models;
-using Tracker.Models.Account;
 
 namespace Tracker.Core.ViewModels
 {
-    public class MainViewModel : CloseableViewModel
+    public class MainViewModel : PrintViewModel
     {
-        public ObservableCollection<ExpenseViewModel> Expenses { get; private set; }
+        public ICommand NavigateToPrint { get; private set; }
 
         public MainViewModel()
         {
-            Expenses = new ObservableCollection<ExpenseViewModel>();
-            Init();
+            NavigateToPrint = new RelayCommand(() => GetViewModel<PrintViewModel>().ShowAsync());
         }
 
-        private async void Init()
+        protected override sealed async Task Init()
         {
             if (IsBusy) return;
-            var id = BeginBusy();
-            var server = IocContainer.Get<IServerService>();
-            var expenses = await server.GetExpenses();
-            Expenses.AddRange(expenses.Select(e => new ExpenseViewModel(e)));
+            await base.Init();
             Expenses.ForEach(Track);
             EnableChangeTracking();
-            EndBusy(id);
         }
 
         private void Track(ExpenseViewModel item)
@@ -43,17 +34,38 @@ namespace Tracker.Core.ViewModels
         private async void ExpenseViewModelOnPropertyChanged(object sender, PropertyChangedEventArgs args)
         {
             var expense = (ExpenseViewModel) sender;
+            if(expense.IsPending) return;
             var server = IocContainer.Get<IServerService>();
             if (!expense.IsCreated && expense.IsValid)
             {
-                var model = await server.CreateExpense(expense.Model);
-                if (model != null)
-                {
-                    expense.Model = model;
-                    expense.IsCreated = true;
-                }
+                await CreateExpense(expense);
             }
-            await server.UpdateExpense(expense.Model);
+            if (expense.IsDirty && expense.IsCreated && expense.IsValid)
+            {
+                expense.IsDirty = false;
+                expense.IsPending = true;
+                await server.UpdateExpense(expense.Model);
+                expense.IsPending = false;
+            }
+        }
+
+        private async Task CreateExpense(ExpenseViewModel expense)
+        {
+            var server = IocContainer.Get<IServerService>();
+            expense.IsDirty = false;
+            expense.IsPending = true;
+            var model = await server.CreateExpense(expense.Model);
+            if (model != null)
+            {
+                expense.Model.ApplicationUserID = model.ApplicationUserID;
+                expense.Model.ExpenseId = model.ExpenseId;
+                expense.IsCreated = true;
+            }
+            else
+            {
+                expense.IsDirty = true;
+            }
+            expense.IsPending = false;
         }
 
         private void Untrack(ExpenseViewModel item)
@@ -73,15 +85,10 @@ namespace Tracker.Core.ViewModels
             {
                 foreach (var newItem in args.NewItems)
                 {
-                    var item = (ExpenseViewModel) newItem;
+                    var item = (ExpenseViewModel)newItem;
                     if (item.IsValid)
                     {
-                        var model = await server.CreateExpense(item.Model);
-                        if (model != null)
-                        {
-                            item.Model = model;
-                            item.IsCreated = true;
-                        }
+                        await CreateExpense(item);
                     }
                     Track(item);
                 }
