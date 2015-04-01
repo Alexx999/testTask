@@ -23,7 +23,11 @@
                 <Label Content="End Date:"/>
                 <DatePicker SelectedDate="{Binding EndDate}"/>
             </StackPanel>
-            <StackPanel x:Name="PrintRoot">
+            <Grid x:Name="PrintRoot">
+                <Grid.RowDefinitions>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
                 <DataGrid ItemsSource="{Binding Expenses}" AutoGenerateColumns="False" IsReadOnly="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Binding="{Binding Date, Converter={StaticResource DateToString}}" Header="Date"/>
@@ -33,13 +37,13 @@
                         <DataGridTextColumn Binding="{Binding Comment}" Header="Comment"/>
                     </DataGrid.Columns>
                 </DataGrid>
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Grid.Row="1" Orientation="Horizontal">
                     <Label Content="Total Expenses:"/>
                     <Label Content="{Binding Total, Converter={StaticResource AmountToString}}"/>
                     <Label Content="Average Expenses:"/>
                     <Label Content="{Binding Average, Converter={StaticResource AmountToString}}"/>
                 </StackPanel>
-            </StackPanel>
+            </Grid>
         </StackPanel>
         <components:CircularProgressBar Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"/>
     </Grid>

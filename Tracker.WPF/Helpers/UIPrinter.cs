@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Tracker.WPF.Helpers
 {
@@ -56,6 +57,8 @@ namespace Tracker.WPF.Helpers
                 // Position of the grid 
                 var ptGrid = new Point(HorizontalOffset, VerticalOffset);
 
+                sizeGrid = new Size(sizeGrid.Width + HorizontalOffset, sizeGrid.Height + VerticalOffset);
+
                 // Layout of the grid
                 Content.Arrange(new Rect(ptGrid, sizeGrid));
 
@@ -79,7 +82,11 @@ namespace Tracker.WPF.Helpers
 
                     i++;
                 }
-
+                var parent = VisualTreeHelper.GetParent(Content) as UIElement;
+                if (parent != null)
+                {
+                    parent.InvalidateMeasure();
+                }
                 return i;
             }
 
