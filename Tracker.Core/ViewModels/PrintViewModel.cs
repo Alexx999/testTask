@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MugenMvvmToolkit;
 using MugenMvvmToolkit.ViewModels;
@@ -68,11 +66,10 @@ namespace Tracker.Core.ViewModels
             {
                 _expenses = value;
                 OnPropertyChanged();
-                UpdateTotal();
             }
         }
 
-        private void UpdateTotal()
+        private void UpdateTotal(DateTime startDate, DateTime endDate)
         {
             if (Expenses.Count == 0)
             {
@@ -82,7 +79,8 @@ namespace Tracker.Core.ViewModels
             }
 
             Total = Expenses.Sum(e => e.Amount);
-            Average = Total / Expenses.Count;
+            var span = (int)(endDate - startDate).TotalDays + 1;
+            Average = Total / span;
         }
 
         public PrintViewModel()
@@ -98,7 +96,7 @@ namespace Tracker.Core.ViewModels
             var server = IocContainer.Get<IServerService>();
             var expenses = await server.GetExpenses();
             Expenses.AddRange(expenses.Select(e => new ExpenseViewModel(e)));
-            UpdateTotal();
+            UpdateTotal(Expenses.Min(e => e.Date), expenses.Max(e => e.Date));
             EndBusy(id);
         }
 
@@ -114,6 +112,7 @@ namespace Tracker.Core.ViewModels
             var endDate = _endDate.Value;
 
             Expenses = new ObservableCollection<ExpenseViewModel>(_originalData.Where(e => e.Date >= startDate && e.Date <= endDate));
+            UpdateTotal(startDate, endDate);
         }
     }
 }

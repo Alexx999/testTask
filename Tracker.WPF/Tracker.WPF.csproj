@@ -82,6 +82,7 @@
     <Compile Include="Extensions\MarginSetter.cs" />
     <Compile Include="Extensions\WatermarkAdorner.cs" />
     <Compile Include="Extensions\WatermarkService.cs" />
+    <Compile Include="Helpers\UIPrinter.cs" />
     <Compile Include="Services\DialogService.cs" />
     <Compile Include="Views\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>

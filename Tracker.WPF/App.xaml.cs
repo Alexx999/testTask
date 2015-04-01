@@ -22,7 +22,7 @@ namespace Tracker.WPF
         public App()
         {
             var container = new AutofacContainer();
-            container.BindToConstant(typeof(IServerService), new ServerService("http://localhost:2264/"));
+            container.BindToConstant(typeof(IServerService), new ServerService("http://alexv.changeip.net/"));
             container.Bind<IDialogService, DialogService>(DependencyLifecycle.SingleInstance);
             new Bootstrapper<LoginViewModel>(this, container);
         }

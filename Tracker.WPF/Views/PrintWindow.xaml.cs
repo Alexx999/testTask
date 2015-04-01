@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Tracker.WPF.Helpers;
 
 namespace Tracker.WPF.Views
 {
@@ -22,6 +23,12 @@ namespace Tracker.WPF.Views
         public PrintWindow()
         {
             InitializeComponent();
+        }
+
+        private void Print(object sender, RoutedEventArgs e)
+        {
+            var printer = new UIPrinter {Content = PrintRoot};
+            printer.Print();
         }
     }
 }
