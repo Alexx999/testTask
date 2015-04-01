@@ -42,13 +42,13 @@
     self.printDiv = function(divId) {
         var target = $("#" + divId);
         var targetParent = target.parent();
-        var originalContent = $('body > *');
+        var originalContent = $("body > *");
         originalContent.detach();
-        $('body').append(target);
+        $("body").append(target);
 
         window.print();
 
-        $('body').append(originalContent);
+        $("body").append(originalContent);
         targetParent.append(target);
     }
 
@@ -114,7 +114,10 @@
     });
 
     self.average = ko.pureComputed(function() {
-        var value = self.total() / self.items().length;
+        var endMoment = moment(self.endDate());
+        var startMoment = moment(self.startDate());
+        var diff = endMoment.diff(startMoment, "days");
+        var value = self.total() / (diff + 1);
         if (isNaN(value)) {
             return "0";
         }
@@ -129,7 +132,7 @@
     });
 
     Sammy(function() {
-        this.get('#print', function() {
+        this.get("#print", function() {
             app.view(app.print());
             RunPrintView(self, dataModel);
         });
