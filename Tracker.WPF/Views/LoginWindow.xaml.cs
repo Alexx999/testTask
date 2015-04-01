@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using MugenMvvmToolkit.Models;
 using Tracker.Core.ViewModels;
 
 namespace Tracker.WPF.Views
@@ -23,12 +24,19 @@ namespace Tracker.WPF.Views
         public LoginWindow()
         {
             InitializeComponent();
+
+            PasswordBox.InputBindings.Add(new KeyBinding(new RelayCommand(Login), Key.Enter, ModifierKeys.None));
+        }
+
+        private void Login()
+        {
+            var vm = DataContext as LoginViewModel;
+            vm.LoginCommand.Execute(PasswordBox.Password);
         }
 
         private void LoginClick(object sender, RoutedEventArgs e)
         {
-            var vm = DataContext as LoginViewModel;
-            vm.LoginCommand.Execute(PasswordBox.Password);
+            Login();
         }
     }
 }
