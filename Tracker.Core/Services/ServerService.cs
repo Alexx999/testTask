@@ -83,8 +83,34 @@ namespace Tracker.Core.Services
             }
         }
 
+        public async Task<Expense> GetExpense(Guid targetGuid)
+        {
+            if (_authorization == null)
+            {
+                throw new InvalidOperationException("Must login successfully before getting data");
+            }
+            var request = SendRequest("api/Expenses/" + targetGuid.ToString(), "GET", null, Json);
+            using (var result = await request)
+            {
+                if (!result.Success) return null;
+                var response = result.Response;
+
+                string data;
+                using (var stream = response.GetResponseStream())
+                {
+                    data = await new StreamReader(stream).ReadToEndAsync();
+                }
+
+                return JsonConvert.DeserializeObject<Expense>(data);
+            }
+        }
+
         public async Task<Expense> CreateExpense(Expense model)
         {
+            if (_authorization == null)
+            {
+                throw new InvalidOperationException("Must login successfully before getting data");
+            }
             var request = SendRequest("api/Expenses", "POST", JsonConvert.SerializeObject(model), Json);
             using (var result = await request)
             {
@@ -103,6 +129,10 @@ namespace Tracker.Core.Services
 
         public async Task<Expense> RemoveExpense(Guid targetGuid)
         {
+            if (_authorization == null)
+            {
+                throw new InvalidOperationException("Must login successfully before getting data");
+            }
             var request = SendRequest("api/Expenses/" + targetGuid.ToString(), "DELETE", null, Json);
             using (var result = await request)
             {
@@ -121,6 +151,10 @@ namespace Tracker.Core.Services
 
         public async Task<bool> UpdateExpense(Expense target)
         {
+            if (_authorization == null)
+            {
+                throw new InvalidOperationException("Must login successfully before getting data");
+            }
             var request = SendRequest("api/Expenses/" + target.ExpenseId.ToString(), "PUT", JsonConvert.SerializeObject(target), Json);
             using (var result = await request)
             {

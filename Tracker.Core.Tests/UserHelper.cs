@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Tracker.Models;
@@ -30,11 +33,26 @@ namespace Tracker.Core.Tests
             var user = await _userManager.FindByEmailAsync(email);
             if (user != null)
             {
-                await _userManager.DeleteAsync(user);
+                try
+                {
+                    _context.Expenses.RemoveRange(_context.Expenses.Where(e => e.ApplicationUserID == user.Id));
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                }
+                try
+                {
+                    _context.Users.Remove(user);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                }
             }
         }
 
-        public async Task EnsureUserExists(string email)
+        public async Task<ApplicationUser> EnsureUserExists(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
@@ -42,13 +60,28 @@ namespace Tracker.Core.Tests
                 user = new ApplicationUser {Name = "Test User", UserName = email, Email = email};
                 await _userManager.CreateAsync(user, TestConfig.TestUserPassword);
             }
+            return user;
         }
-
-        public async Task AddExpense(string email)
+        public async Task<List<ModelsFull::Tracker.Models.Expense>> GetExpenses(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            _context.Expenses.Add(new ModelsFull::Tracker.Models.Expense { Amount = 0, ApplicationUserID = user.Id, Comment = TestConfig.TestUserPassword, Date = DateTime.Now, Description = "This is Expense"});
+            return _context.Expenses.Where(e => e.ApplicationUserID == user.Id).ToList();
+        }
+
+        public async Task<ModelsFull::Tracker.Models.Expense> AddExpense(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            var expense = new ModelsFull::Tracker.Models.Expense
+            {
+                Amount = 0,
+                ApplicationUserID = user.Id,
+                Comment = TestConfig.TestUserPassword,
+                Date = DateTime.Now,
+                Description = "This is Expense"
+            };
+            _context.Expenses.Add(expense);
             await _context.SaveChangesAsync();
+            return expense;
         }
     }
 }

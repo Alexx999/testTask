@@ -11,6 +11,7 @@ namespace Tracker.Core.Services
         Task<bool> Register(RegisterModel model);
         Task<bool> Login(string username, string password);
         Task<List<Expense>> GetExpenses();
+        Task<Expense> GetExpense(Guid targetGuid);
         Task<Expense> CreateExpense(Expense model);
         Task<Expense> RemoveExpense(Guid targetGuid);
         Task<bool> UpdateExpense(Expense target);
